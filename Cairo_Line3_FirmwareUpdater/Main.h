@@ -3,6 +3,9 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
+#include "Version.h"
+#include <tlhelp32.h>
+//---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
@@ -69,6 +72,19 @@
 #include "dxSkinWhiteprint.hpp"
 #include "dxSkinXmas2008Blue.hpp"
 #include <Vcl.ExtCtrls.hpp>
+#include "AdvGrid.hpp"
+#include "AdvObj.hpp"
+#include "BaseGrid.hpp"
+#include <Vcl.Grids.hpp>
+#include "AdvSmoothButton.hpp"
+#include "AdvMemo.hpp"
+#include <IdBaseComponent.hpp>
+#include <IdCmdTCPServer.hpp>
+#include <IdComponent.hpp>
+#include <IdCustomTCPServer.hpp>
+#include <IdExplicitTLSClientServerBase.hpp>
+#include <IdFTPServer.hpp>
+#include <IdTCPServer.hpp>
 //---------------------------------------------------------------------------
 class TFormMain : public TForm
 {
@@ -84,15 +100,35 @@ __published:	// IDE-managed Components
 	TPanel *_pnBase_01_Update;
 	TPanel *__pnBase_Main;
 	TPanel *_pnBase_02_Setting;
+	TAdvStringGrid *grid;
+	TAdvSmoothButton *btn_Test;
+	TAdvMemo *memo;
+	TdxBar *dxBarMgrBar2;
+	TdxBarLargeButton *MenuBtn_Status;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
+	void __fastcall MenuBtn_VersionClick(TObject *Sender);
+	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
+	void __fastcall MenuBtn_SettingClick(TObject *Sender);
+	void __fastcall btn_TestClick(TObject *Sender);
+	void __fastcall MenuBtn_StatusClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
 
-public: // START FIRMWARE UPDATER PROGRAM
+
+
+public: // START FIRMWARE UPDATER PROGRAM : Variable
+	STARTUPINFO m_si;
+	PROCESS_INFORMATION m_pi;
+
+public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
 	void __fastcall ExitProgram();
-	void __fastcall PrintMsg();
+	void __fastcall PrintMsg(UnicodeString _str);
+	void __fastcall GridDefaultSetting();
+	void __fastcall RunExternalFTPServer();
+
+
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TFormMain *FormMain;
