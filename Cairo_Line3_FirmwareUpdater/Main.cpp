@@ -90,11 +90,35 @@ void __fastcall TFormMain::FormClose(TObject *Sender, TCloseAction &Action)
 
 void __fastcall TFormMain::InitProgram() {
 
+	// Common
+	UnicodeString t_Str = L"";
+
 	// Notebook Page Setting
 	Notebook_Main->PageIndex = 0; // Main
 
 	// Grid Default Setting
 	GridDefaultSetting();
+
+	// Init Socket
+	WSADATA data;
+	WORD version;
+	int ret = 0;
+
+	version = MAKEWORD(2, 2);
+	ret = WSAStartup(version, &data);
+	if(ret != 0) {
+		ret = WSAGetLastError();
+		if(ret == WSANOTINITIALISED) {
+			t_Str.sprintf(L"Socket not initialised (error code : %d)", ret);
+			PrintMsg(t_Str);
+		} else {
+			t_Str.sprintf(L"Socket error (error code : %d)", ret);
+			PrintMsg(t_Str);
+		}
+		return;
+	} else {
+		PrintMsg(L"Socket init success");
+	}
 
 	// Run External FTP Server Program
 	RunExternalFTPServer();
@@ -110,6 +134,9 @@ void __fastcall TFormMain::ExitProgram() {
 		CloseHandle( m_pi.hThread );
 	}
 	ZeroMemory( &m_pi, sizeof( m_pi ) );
+
+	// Socket
+	WSACleanup();
 }
 //---------------------------------------------------------------------------
 
@@ -154,7 +181,7 @@ void __fastcall TFormMain::GridDefaultSetting() {
 		grid->Cells[4][i] = L"3702"; // Car Num
 		grid->Cells[6][i] = L"00.01"; // Version
 		grid->Cells[7][i] = L"2020.11.12"; // Date
-		grid->Cells[9][i] = L"NG"; // Date
+		grid->Cells[10][i] = L"NG"; // Date
 	}
 
 	// Car Name
@@ -191,6 +218,9 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->AddAdvProgress(8, i, 0, 100);
 		grid->Ints[8][i] = 50;
+
+		grid->AddAdvProgress(9, i, 0, 100);
+		grid->Ints[9][i] = 0;
 	}
 	grid->Ints[8][1] = 25;
 	grid->Ints[8][2] = 75;
@@ -199,6 +229,8 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	grid->Ints[8][5] = 99;
 	grid->Ints[8][6] = 0;
 	grid->Ints[8][7] = 49;
+
+	grid->Ints[9][3] = 73;
 }
 //---------------------------------------------------------------------------
 
@@ -238,7 +270,8 @@ void __fastcall TFormMain::RunExternalFTPServer() {
 	}
 
 	if(ret) {
-		Application->MessageBoxW(L"ftpserv is already running", L"", MB_OK | MB_ICONINFORMATION);
+		//Application->MessageBoxW(L"ftpserv is already running", L"", MB_OK | MB_ICONINFORMATION);
+		PrintMsg(L"FTP Server is already running...");
 	} else {
 		//ShellExecute(NULL, L"open", t_fileName.c_str(), NULL, t_dirPath.c_str(), SW_SHOWDEFAULT);
 		// ShellExecute 방식 안쓰고 아래 방식으로 간다. (찾아서 닫기 위해서...)
@@ -256,4 +289,89 @@ void __fastcall TFormMain::RunExternalFTPServer() {
 	}
 }
 //---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_ResetClick(TObject *Sender)
+{
+	Reset(); // Grid Reset
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::Reset() {
+	// Progress
+	for(int i = 1 ; i < 9 ; i++) {
+		grid->Cells[1][i] = L""; // Status
+		grid->Cells[4][i] = L""; // Num
+		grid->Cells[6][i] = L""; // Version
+		grid->Cells[7][i] = L""; // Date
+		grid->Ints[8][i] = 0;
+		grid->Ints[9][i] = 0;
+		grid->Cells[10][i] = L""; // Result
+	}
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_SetupClick(TObject *Sender)
+{
+	CreateMulticastSocket();
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TFormMain::CreateMulticastSocket() {
+	if(m_MCast_socket != NULL) {
+		PrintMsg(L"Socket already exist");
+		return false;
+	}
+
+	m_MCast_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if(m_MCast_socket == INVALID_SOCKET) {
+		PrintMsg(L"Fail to create multicast socket");
+		m_MCast_socket = NULL;
+		return false;
+	}
+
+	int t_opt_reuse = 1;
+	if (setsockopt(m_MCast_socket, SOL_SOCKET, SO_REUSEADDR,(char *)&t_opt_reuse, sizeof(t_opt_reuse)) == SOCKET_ERROR)
+	{
+		PrintMsg(L"Fail to create multicast socket");
+		m_MCast_socket = NULL;
+		return false;
+	}
+
+	// Bind to the proper port number with the IP address
+	ZeroMemory(&m_addr_in, sizeof(m_addr_in));
+	m_addr_in.sin_family = AF_INET;
+	m_addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	m_addr_in.sin_port = htons(MULTICAST_PORT);
+	if (bind(m_MCast_socket, (struct sockaddr*)&m_addr_in, sizeof(m_addr_in)))
+	{
+		PrintMsg(L"Fail to bind multicast socket");
+		return false;
+	}
+
+
+	ZeroMemory(&m_ip_mreq, sizeof(m_ip_mreq));
+	m_ip_mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
+	m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
+	if (setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR)
+	{
+		PrintMsg(L"Fail to join multicast group");
+		m_MCast_socket = NULL;
+		return false;
+	}
+
+
+	//LOCAL_IP "192.168.0.201"
+	//MULTICAST_IP "239.255.93.18"
+	//MULTICAST_PORT 50101;
+
+
+
+
+	PrintMsg(L"Success to create multicast socket");
+	return true;
+
+
+}
+//---------------------------------------------------------------------------
+
 

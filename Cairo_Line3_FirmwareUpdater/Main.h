@@ -3,6 +3,10 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
+#define LOCAL_IP "192.168.0.47"
+#define MULTICAST_IP "239.255.93.18"
+#define MULTICAST_PORT 50101
+//---------------------------------------------------------------------------
 #include "Version.h"
 #include <tlhelp32.h>
 //---------------------------------------------------------------------------
@@ -105,12 +109,16 @@ __published:	// IDE-managed Components
 	TAdvMemo *memo;
 	TdxBar *dxBarMgrBar2;
 	TdxBarLargeButton *MenuBtn_Status;
+	TAdvSmoothButton *btn_Reset;
+	TAdvSmoothButton *btn_Setup;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall MenuBtn_VersionClick(TObject *Sender);
 	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
 	void __fastcall MenuBtn_SettingClick(TObject *Sender);
 	void __fastcall btn_TestClick(TObject *Sender);
 	void __fastcall MenuBtn_StatusClick(TObject *Sender);
+	void __fastcall btn_ResetClick(TObject *Sender);
+	void __fastcall btn_SetupClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
@@ -118,8 +126,14 @@ public:		// User declarations
 
 
 public: // START FIRMWARE UPDATER PROGRAM : Variable
+	// For Using External Process
 	STARTUPINFO m_si;
 	PROCESS_INFORMATION m_pi;
+
+	// For Socket
+	SOCKET m_MCast_socket;
+	struct ip_mreq m_ip_mreq;
+	struct sockaddr_in m_addr_in;
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
@@ -127,6 +141,10 @@ public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall PrintMsg(UnicodeString _str);
 	void __fastcall GridDefaultSetting();
 	void __fastcall RunExternalFTPServer();
+	void __fastcall Reset();
+
+	// Socket
+	bool __fastcall CreateMulticastSocket();
 
 
 };

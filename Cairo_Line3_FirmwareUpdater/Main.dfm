@@ -3,22 +3,47 @@ object FormMain: TFormMain
   Top = 0
   Caption = 'Cairo_Line3_FirmwareUpdater'
   ClientHeight = 738
-  ClientWidth = 788
+  ClientWidth = 902
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  Icon.Data = {
+    0000010001002020100000000000E80200001600000028000000200000004000
+    0000010004000000000080020000000000000000000000000000000000000000
+    000000008000008000000080800080000000800080008080000080808000C0C0
+    C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF000000
+    000000000000000000000000000080000788888888888888888888700008FF70
+    00788888888888888888870007FFFFF80000000000000000000000008FFFFFFF
+    F70007FFFFFFFFFFFF70007FFFFFFFFFFF80000777777777700008FFFFFFFFFF
+    FF70000000000000000007FFFFFFFFFFF0000000000000000000000FFFFFFFFF
+    700000000000000000000007FFFFFFF80000000000000000000000008FFFFFF7
+    00008F800000000008F800007FFFFFF70000FFF7000000007FFF00007FFFFFF7
+    0000FFF0000000000FFF00007FFFFFF70000070000000000007000007FFFFFF7
+    0000000000000000000000007FFFFFF70000000000000000000000007FFFFFF7
+    0000000000000000000000007FFFFFF70008FFFFFFFFFFFFFFFF80007FFFFFF7
+    008FFFFFFFFFFFFFFFFFF8007FFFFFF700FFFFFFFFFFFFFFFFFFFF007FFFFFF7
+    00FFFFFFFFFFFFFFFFFFFF007FFFFFF700FFFFFFFFFFFFFFFFFFFF007FFFFFF7
+    00FFFFFFFFFFFFFFFFFFFF007FFFFFF700FFFFFFFFFFFFFFFFFFFF007FFFFFF7
+    007FFFFFFFFFFFFFFFFFF7007FFFFFF7000788FFFFFFFFFFFF8870007FFFFFF7
+    0000000000000000000000007FFFFFF80000000000000000000000008FFFFFFF
+    00000000FFFFFFFF00000000FFFFFFFF80000007FFFFFFFF70000008FFFFFFFF
+    FF70000000000000000007FFFFFFFFFFFFF870000000000000078FFFFFFF0000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    000000000000000000000000000000000000000000000000000000000000}
   OldCreateOrder = False
-  Position = poDesktopCenter
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object RibbonMenu: TdxRibbon
     Left = 0
     Top = 0
-    Width = 788
+    Width = 902
     Height = 124
     Cursor = crHandPoint
     BarManager = dxBarMgr
@@ -28,7 +53,7 @@ object FormMain: TFormMain
     Contexts = <>
     TabOrder = 0
     TabStop = False
-    ExplicitWidth = 1182
+    ExplicitWidth = 788
     object RibbonMenuTab_01_Menu: TdxRibbonTab
       Active = True
       Caption = 'Menu'
@@ -45,7 +70,7 @@ object FormMain: TFormMain
   object __pnBase_Main: TPanel
     Left = 0
     Top = 124
-    Width = 788
+    Width = 902
     Height = 614
     Align = alClient
     BevelOuter = bvNone
@@ -53,47 +78,39 @@ object FormMain: TFormMain
     Color = clBlack
     ParentBackground = False
     TabOrder = 5
-    ExplicitLeft = 667
-    ExplicitTop = 126
-    ExplicitWidth = 285
-    ExplicitHeight = 185
+    ExplicitWidth = 788
     object Notebook_Main: TNotebook
       Left = 0
       Top = 0
-      Width = 788
+      Width = 902
       Height = 614
       Align = alClient
       TabOrder = 0
-      ExplicitWidth = 1182
-      ExplicitHeight = 150
+      ExplicitWidth = 788
       object TPage
         Left = 0
         Top = 0
         Caption = 'Default'
-        ExplicitWidth = 150
-        ExplicitHeight = 150
+        ExplicitWidth = 788
         object _pnBase_01_Update: TPanel
           Left = 0
           Top = 0
-          Width = 788
+          Width = 902
           Height = 614
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitLeft = 240
-          ExplicitTop = 160
-          ExplicitWidth = 185
-          ExplicitHeight = 41
+          ExplicitWidth = 788
           object grid: TAdvStringGrid
             Left = 29
             Top = 24
-            Width = 732
+            Width = 848
             Height = 256
             Cursor = crDefault
             TabStop = False
-            ColCount = 10
+            ColCount = 11
             Ctl3D = True
             DefaultRowHeight = 28
             DoubleBuffered = True
@@ -127,7 +144,8 @@ object FormMain: TFormMain
               'IP'
               'Version'
               'Date'
-              'Progress'
+              'FTP Download'
+              'Flash Download'
               'Result')
             ControlLook.FixedGradientHoverFrom = clGray
             ControlLook.FixedGradientHoverTo = clWhite
@@ -230,11 +248,12 @@ object FormMain: TFormMain
               70
               100
               110
-              58)
+              110
+              64)
           end
           object btn_Test: TAdvSmoothButton
-            Left = 624
-            Top = 304
+            Left = 744
+            Top = 297
             Width = 120
             Height = 35
             Cursor = crHandPoint
@@ -277,7 +296,7 @@ object FormMain: TFormMain
           object memo: TAdvMemo
             Left = 29
             Top = 297
-            Width = 572
+            Width = 692
             Height = 297
             Cursor = crIBeam
             ActiveLineSettings.ShowActiveLine = False
@@ -388,6 +407,90 @@ object FormMain: TFormMain
             Version = '3.4.1.0'
             WordWrap = wwNone
           end
+          object btn_Reset: TAdvSmoothButton
+            Left = 744
+            Top = 338
+            Width = 120
+            Height = 35
+            Cursor = crHandPoint
+            Hint = 'TEST'
+            Appearance.GlowPercentage = 35
+            Appearance.Font.Charset = DEFAULT_CHARSET
+            Appearance.Font.Color = clAqua
+            Appearance.Font.Height = -15
+            Appearance.Font.Name = 'Tahoma'
+            Appearance.Font.Style = [fsBold]
+            Appearance.Rounding = 12
+            Status.Caption = '0'
+            Status.Appearance.Fill.Color = clRed
+            Status.Appearance.Fill.ColorMirror = clNone
+            Status.Appearance.Fill.ColorMirrorTo = clNone
+            Status.Appearance.Fill.GradientType = gtSolid
+            Status.Appearance.Fill.GradientMirrorType = gtSolid
+            Status.Appearance.Fill.BorderColor = clGray
+            Status.Appearance.Fill.Rounding = 8
+            Status.Appearance.Fill.ShadowOffset = 0
+            Status.Appearance.Fill.Glow = gmNone
+            Status.Appearance.Font.Charset = DEFAULT_CHARSET
+            Status.Appearance.Font.Color = clWhite
+            Status.Appearance.Font.Height = -11
+            Status.Appearance.Font.Name = 'Tahoma'
+            Status.Appearance.Font.Style = []
+            Bevel = False
+            BevelColor = clLime
+            Caption = 'RESET'
+            Color = clNavy
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            ShowFocus = False
+            Version = '2.1.0.0'
+            OnClick = btn_ResetClick
+            TMSStyle = 0
+          end
+          object btn_Setup: TAdvSmoothButton
+            Left = 744
+            Top = 379
+            Width = 120
+            Height = 35
+            Cursor = crHandPoint
+            Hint = 'TEST'
+            Appearance.GlowPercentage = 35
+            Appearance.Font.Charset = DEFAULT_CHARSET
+            Appearance.Font.Color = clAqua
+            Appearance.Font.Height = -15
+            Appearance.Font.Name = 'Tahoma'
+            Appearance.Font.Style = [fsBold]
+            Appearance.Rounding = 12
+            Status.Caption = '0'
+            Status.Appearance.Fill.Color = clRed
+            Status.Appearance.Fill.ColorMirror = clNone
+            Status.Appearance.Fill.ColorMirrorTo = clNone
+            Status.Appearance.Fill.GradientType = gtSolid
+            Status.Appearance.Fill.GradientMirrorType = gtSolid
+            Status.Appearance.Fill.BorderColor = clGray
+            Status.Appearance.Fill.Rounding = 8
+            Status.Appearance.Fill.ShadowOffset = 0
+            Status.Appearance.Fill.Glow = gmNone
+            Status.Appearance.Font.Charset = DEFAULT_CHARSET
+            Status.Appearance.Font.Color = clWhite
+            Status.Appearance.Font.Height = -11
+            Status.Appearance.Font.Name = 'Tahoma'
+            Status.Appearance.Font.Style = []
+            Bevel = False
+            BevelColor = clLime
+            Caption = 'SET UP'
+            Color = clNavy
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 4
+            ShowFocus = False
+            Version = '2.1.0.0'
+            OnClick = btn_SetupClick
+            TMSStyle = 0
+          end
         end
       end
       object TPage
@@ -395,22 +498,18 @@ object FormMain: TFormMain
         Top = 0
         HelpContext = 1
         Caption = 'Setting'
-        ExplicitWidth = 0
-        ExplicitHeight = 0
+        ExplicitWidth = 1009
         object _pnBase_02_Setting: TPanel
           Left = 0
           Top = 0
-          Width = 788
+          Width = 902
           Height = 614
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitLeft = 320
-          ExplicitTop = 192
-          ExplicitWidth = 185
-          ExplicitHeight = 41
+          ExplicitWidth = 1009
         end
       end
     end
@@ -453,8 +552,8 @@ object FormMain: TFormMain
           Visible = True
           ItemName = 'MenuBtn_Setting'
         end>
-      OneOnRow = True
-      Row = 1
+      OneOnRow = False
+      Row = 0
       UseOwnFont = False
       Visible = True
       WholeRow = False
@@ -477,7 +576,7 @@ object FormMain: TFormMain
           Visible = True
           ItemName = 'MenuBtn_Version'
         end>
-      OneOnRow = True
+      OneOnRow = False
       Row = 0
       UseOwnFont = False
       Visible = True
