@@ -6,8 +6,12 @@
 #define LOCAL_IP "192.168.0.47"
 #define MULTICAST_IP "239.255.93.18"
 #define MULTICAST_PORT 50101
+
+#define MSG_LOG	40000
+#define MCAST_PACKET_SIZE 17
 //---------------------------------------------------------------------------
 #include "Version.h"
+#include "MulticastThread.h"
 #include <tlhelp32.h>
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
@@ -90,6 +94,7 @@
 #include <IdFTPServer.hpp>
 #include <IdTCPServer.hpp>
 //---------------------------------------------------------------------------
+class CMulticastThread;
 class TFormMain : public TForm
 {
 __published:	// IDE-managed Components
@@ -134,6 +139,7 @@ public: // START FIRMWARE UPDATER PROGRAM : Variable
 	SOCKET m_MCast_socket;
 	struct ip_mreq m_ip_mreq;
 	struct sockaddr_in m_addr_in;
+	CMulticastThread *m_MCastThread;
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
@@ -146,7 +152,13 @@ public: // START FIRMWARE UPDATER PROGRAM : Func
 	// Socket
 	bool __fastcall CreateMulticastSocket();
 
+	// Message Handler
+	void __fastcall ReceiveMsg(TMessage &_msg);
 
+
+BEGIN_MESSAGE_MAP
+	MESSAGE_HANDLER(MSG_LOG, TMessage, ReceiveMsg)
+END_MESSAGE_MAP(TForm)
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TFormMain *FormMain;

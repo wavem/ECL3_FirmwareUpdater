@@ -1,9 +1,11 @@
 object FormMain: TFormMain
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
   Caption = 'Cairo_Line3_FirmwareUpdater'
-  ClientHeight = 738
-  ClientWidth = 902
+  ClientHeight = 748
+  ClientWidth = 912
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -43,7 +45,7 @@ object FormMain: TFormMain
   object RibbonMenu: TdxRibbon
     Left = 0
     Top = 0
-    Width = 902
+    Width = 912
     Height = 124
     Cursor = crHandPoint
     BarManager = dxBarMgr
@@ -53,7 +55,7 @@ object FormMain: TFormMain
     Contexts = <>
     TabOrder = 0
     TabStop = False
-    ExplicitWidth = 788
+    ExplicitWidth = 902
     object RibbonMenuTab_01_Menu: TdxRibbonTab
       Active = True
       Caption = 'Menu'
@@ -70,39 +72,43 @@ object FormMain: TFormMain
   object __pnBase_Main: TPanel
     Left = 0
     Top = 124
-    Width = 902
-    Height = 614
+    Width = 912
+    Height = 624
     Align = alClient
     BevelOuter = bvNone
     Caption = '__pnBase_Main'
     Color = clBlack
     ParentBackground = False
     TabOrder = 5
-    ExplicitWidth = 788
+    ExplicitWidth = 902
+    ExplicitHeight = 614
     object Notebook_Main: TNotebook
       Left = 0
       Top = 0
-      Width = 902
-      Height = 614
+      Width = 912
+      Height = 624
       Align = alClient
       TabOrder = 0
-      ExplicitWidth = 788
+      ExplicitWidth = 902
+      ExplicitHeight = 614
       object TPage
         Left = 0
         Top = 0
         Caption = 'Default'
-        ExplicitWidth = 788
+        ExplicitWidth = 902
+        ExplicitHeight = 614
         object _pnBase_01_Update: TPanel
           Left = 0
           Top = 0
-          Width = 902
-          Height = 614
+          Width = 912
+          Height = 624
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitWidth = 788
+          ExplicitWidth = 902
+          ExplicitHeight = 614
           object grid: TAdvStringGrid
             Left = 29
             Top = 24
@@ -252,7 +258,7 @@ object FormMain: TFormMain
               64)
           end
           object btn_Test: TAdvSmoothButton
-            Left = 744
+            Left = 754
             Top = 297
             Width = 120
             Height = 35
@@ -296,7 +302,7 @@ object FormMain: TFormMain
           object memo: TAdvMemo
             Left = 29
             Top = 297
-            Width = 692
+            Width = 719
             Height = 297
             Cursor = crIBeam
             ActiveLineSettings.ShowActiveLine = False
@@ -408,7 +414,7 @@ object FormMain: TFormMain
             WordWrap = wwNone
           end
           object btn_Reset: TAdvSmoothButton
-            Left = 744
+            Left = 754
             Top = 338
             Width = 120
             Height = 35
@@ -450,7 +456,7 @@ object FormMain: TFormMain
             TMSStyle = 0
           end
           object btn_Setup: TAdvSmoothButton
-            Left = 744
+            Left = 754
             Top = 379
             Width = 120
             Height = 35
@@ -498,18 +504,20 @@ object FormMain: TFormMain
         Top = 0
         HelpContext = 1
         Caption = 'Setting'
-        ExplicitWidth = 1009
+        ExplicitWidth = 902
+        ExplicitHeight = 614
         object _pnBase_02_Setting: TPanel
           Left = 0
           Top = 0
-          Width = 902
-          Height = 614
+          Width = 912
+          Height = 624
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitWidth = 1009
+          ExplicitWidth = 902
+          ExplicitHeight = 614
         end
       end
     end
@@ -1002,7 +1010,7 @@ object FormMain: TFormMain
       Width = 60
     end
     object MenuBtn_Status: TdxBarLargeButton
-      Caption = 'Update'
+      Caption = 'Status'
       Category = 0
       Hint = 'Status'
       Visible = ivAlways

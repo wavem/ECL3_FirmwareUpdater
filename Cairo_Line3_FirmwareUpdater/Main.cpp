@@ -99,6 +99,9 @@ void __fastcall TFormMain::InitProgram() {
 	// Grid Default Setting
 	GridDefaultSetting();
 
+	// Thread
+	m_MCastThread = NULL;
+
 	// Init Socket
 	WSADATA data;
 	WORD version;
@@ -127,6 +130,19 @@ void __fastcall TFormMain::InitProgram() {
 
 void __fastcall TFormMain::ExitProgram() {
 
+	// Socket
+	if(m_MCast_socket != NULL) {
+		closesocket(m_MCast_socket);
+		m_MCast_socket = NULL;
+	}
+
+	// Thread
+	if(m_MCastThread) {
+		m_MCastThread->Terminate();
+		delete m_MCastThread;
+		m_MCastThread = NULL;
+	}
+
 	// Close External FTP Program
 	if( m_pi.hProcess != 0 ) {
 		TerminateProcess( m_pi.hProcess, 0 );
@@ -136,6 +152,11 @@ void __fastcall TFormMain::ExitProgram() {
 	ZeroMemory( &m_pi, sizeof( m_pi ) );
 
 	// Socket
+	if(m_MCast_socket != NULL) {
+		closesocket(m_MCast_socket);
+		m_MCast_socket = NULL;
+	}
+
 	WSACleanup();
 }
 //---------------------------------------------------------------------------
@@ -312,28 +333,36 @@ void __fastcall TFormMain::Reset() {
 
 void __fastcall TFormMain::btn_SetupClick(TObject *Sender)
 {
-	CreateMulticastSocket();
+	if(CreateMulticastSocket() == false) {
+		if(m_MCast_socket != NULL) {
+			closesocket(m_MCast_socket);
+			m_MCast_socket = NULL;
+		}
+	}
 }
 //---------------------------------------------------------------------------
 
 bool __fastcall TFormMain::CreateMulticastSocket() {
+	// Common
+	UnicodeString tempStr = L"";
+
 	if(m_MCast_socket != NULL) {
 		PrintMsg(L"Socket already exist");
-		return false;
+		return true; // Um..T.T..
 	}
 
+	// Create Socket
 	m_MCast_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if(m_MCast_socket == INVALID_SOCKET) {
 		PrintMsg(L"Fail to create multicast socket");
-		m_MCast_socket = NULL;
 		return false;
 	}
 
+	// Set Socket Option : REUSE
 	int t_opt_reuse = 1;
-	if (setsockopt(m_MCast_socket, SOL_SOCKET, SO_REUSEADDR,(char *)&t_opt_reuse, sizeof(t_opt_reuse)) == SOCKET_ERROR)
+	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_REUSEADDR,(char *)&t_opt_reuse, sizeof(t_opt_reuse)) == SOCKET_ERROR)
 	{
 		PrintMsg(L"Fail to create multicast socket");
-		m_MCast_socket = NULL;
 		return false;
 	}
 
@@ -342,35 +371,71 @@ bool __fastcall TFormMain::CreateMulticastSocket() {
 	m_addr_in.sin_family = AF_INET;
 	m_addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	m_addr_in.sin_port = htons(MULTICAST_PORT);
-	if (bind(m_MCast_socket, (struct sockaddr*)&m_addr_in, sizeof(m_addr_in)))
-	{
+	if(bind(m_MCast_socket, (struct sockaddr*)&m_addr_in, sizeof(m_addr_in))) {
 		PrintMsg(L"Fail to bind multicast socket");
 		return false;
 	}
 
-
+	// Join to Multicast Group
 	ZeroMemory(&m_ip_mreq, sizeof(m_ip_mreq));
 	m_ip_mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
 	m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
-	if (setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR)
-	{
+	if(setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR) {
 		PrintMsg(L"Fail to join multicast group");
-		m_MCast_socket = NULL;
 		return false;
 	}
+
+	// Belows are Routine that setting socket buffer size. do not use in this project.
+	/*
+	int t_optval;
+	int t_optlen = sizeof(t_optval);
+	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to get socket buffer size");
+		return false;
+	}
+
+	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
+	PrintMsg(tempStr);
+
+	t_optval = 15000;
+	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, sizeof(t_optval)) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to set socket buffer size");
+		return false;
+	}
+
+	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to get socket buffer size");
+		return false;
+	}
+	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
+	PrintMsg(tempStr);
+	*/
 
 
 	//LOCAL_IP "192.168.0.201"
 	//MULTICAST_IP "239.255.93.18"
 	//MULTICAST_PORT 50101;
 
+	m_MCastThread = new CMulticastThread(&m_MCast_socket);
 
 
-
+	// Success to Create Socket
 	PrintMsg(L"Success to create multicast socket");
 	return true;
+}
+//---------------------------------------------------------------------------
 
+void __fastcall TFormMain::ReceiveMsg(TMessage &_msg) {
+	unsigned int t_wParam = _msg.WParam;
+	int t_lParam = _msg.LParam;
 
+	UnicodeString tempStr = L"";
+	UnicodeString *p = NULL;
+	p = (UnicodeString*)t_wParam;
+	tempStr = *p;
+	//tempStr.sprintf(L"W : %08x, L : %08x", t_wParam, t_lParam);
+	int t_Idx = memo->Lines->Add(tempStr);
+	memo->SetCursor(0, t_Idx);
 }
 //---------------------------------------------------------------------------
 
