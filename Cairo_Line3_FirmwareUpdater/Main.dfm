@@ -5,7 +5,7 @@ object FormMain: TFormMain
   BorderStyle = bsSingle
   Caption = 'Cairo_Line3_FirmwareUpdater'
   ClientHeight = 748
-  ClientWidth = 912
+  ClientWidth = 928
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -45,7 +45,7 @@ object FormMain: TFormMain
   object RibbonMenu: TdxRibbon
     Left = 0
     Top = 0
-    Width = 912
+    Width = 928
     Height = 124
     Cursor = crHandPoint
     BarManager = dxBarMgr
@@ -55,7 +55,7 @@ object FormMain: TFormMain
     Contexts = <>
     TabOrder = 0
     TabStop = False
-    ExplicitWidth = 902
+    ExplicitWidth = 912
     object RibbonMenuTab_01_Menu: TdxRibbonTab
       Active = True
       Caption = 'Menu'
@@ -72,7 +72,7 @@ object FormMain: TFormMain
   object __pnBase_Main: TPanel
     Left = 0
     Top = 124
-    Width = 912
+    Width = 928
     Height = 624
     Align = alClient
     BevelOuter = bvNone
@@ -80,39 +80,35 @@ object FormMain: TFormMain
     Color = clBlack
     ParentBackground = False
     TabOrder = 5
-    ExplicitWidth = 902
-    ExplicitHeight = 614
+    ExplicitWidth = 912
     object Notebook_Main: TNotebook
       Left = 0
       Top = 0
-      Width = 912
+      Width = 928
       Height = 624
       Align = alClient
       TabOrder = 0
-      ExplicitWidth = 902
-      ExplicitHeight = 614
+      ExplicitWidth = 912
       object TPage
         Left = 0
         Top = 0
         Caption = 'Default'
-        ExplicitWidth = 902
-        ExplicitHeight = 614
+        ExplicitWidth = 912
         object _pnBase_01_Update: TPanel
           Left = 0
           Top = 0
-          Width = 912
+          Width = 928
           Height = 624
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitWidth = 902
-          ExplicitHeight = 614
+          ExplicitWidth = 912
           object grid: TAdvStringGrid
             Left = 29
             Top = 24
-            Width = 848
+            Width = 874
             Height = 256
             Cursor = crDefault
             TabStop = False
@@ -246,7 +242,7 @@ object FormMain: TFormMain
             Version = '7.8.0.1'
             ColWidths = (
               32
-              86
+              101
               54
               54
               54
@@ -255,7 +251,7 @@ object FormMain: TFormMain
               100
               110
               110
-              64)
+              75)
           end
           object btn_Test: TAdvSmoothButton
             Left = 754
@@ -497,6 +493,48 @@ object FormMain: TFormMain
             OnClick = btn_SetupClick
             TMSStyle = 0
           end
+          object btn_Timer: TAdvSmoothButton
+            Left = 754
+            Top = 420
+            Width = 120
+            Height = 35
+            Cursor = crHandPoint
+            Hint = 'TEST'
+            Appearance.GlowPercentage = 35
+            Appearance.Font.Charset = DEFAULT_CHARSET
+            Appearance.Font.Color = clAqua
+            Appearance.Font.Height = -15
+            Appearance.Font.Name = 'Tahoma'
+            Appearance.Font.Style = [fsBold]
+            Appearance.Rounding = 12
+            Status.Caption = '0'
+            Status.Appearance.Fill.Color = clRed
+            Status.Appearance.Fill.ColorMirror = clNone
+            Status.Appearance.Fill.ColorMirrorTo = clNone
+            Status.Appearance.Fill.GradientType = gtSolid
+            Status.Appearance.Fill.GradientMirrorType = gtSolid
+            Status.Appearance.Fill.BorderColor = clGray
+            Status.Appearance.Fill.Rounding = 8
+            Status.Appearance.Fill.ShadowOffset = 0
+            Status.Appearance.Fill.Glow = gmNone
+            Status.Appearance.Font.Charset = DEFAULT_CHARSET
+            Status.Appearance.Font.Color = clWhite
+            Status.Appearance.Font.Height = -11
+            Status.Appearance.Font.Name = 'Tahoma'
+            Status.Appearance.Font.Style = []
+            Bevel = False
+            BevelColor = clLime
+            Caption = 'TIMER'
+            Color = clNavy
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 5
+            ShowFocus = False
+            Version = '2.1.0.0'
+            OnClick = btn_TimerClick
+            TMSStyle = 0
+          end
         end
       end
       object TPage
@@ -504,20 +542,18 @@ object FormMain: TFormMain
         Top = 0
         HelpContext = 1
         Caption = 'Setting'
-        ExplicitWidth = 902
-        ExplicitHeight = 614
+        ExplicitWidth = 912
         object _pnBase_02_Setting: TPanel
           Left = 0
           Top = 0
-          Width = 912
+          Width = 928
           Height = 624
           Align = alClient
           BevelOuter = bvNone
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitWidth = 902
-          ExplicitHeight = 614
+          ExplicitWidth = 912
         end
       end
     end
@@ -1151,5 +1187,11 @@ object FormMain: TFormMain
         0000000000000000000000000000000000000000000000000000}
       Width = 60
     end
+  end
+  object tm_Info: TTimer
+    Enabled = False
+    Interval = 250
+    OnTimer = tm_InfoTimer
+    Left = 579
   end
 end

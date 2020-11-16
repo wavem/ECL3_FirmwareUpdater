@@ -99,8 +99,16 @@ void __fastcall TFormMain::InitProgram() {
 	// Grid Default Setting
 	GridDefaultSetting();
 
+	// Init Send Data Buffer
+	for(int i = 0 ; i < 8 ; i++) {
+		m_SendDataBuf[i] = 0x00;
+	}
+
 	// Thread
 	m_MCastThread = NULL;
+
+	// Update Info Class
+	m_Info = new UpdateInfo[8];
 
 	// Init Socket
 	WSADATA data;
@@ -261,6 +269,7 @@ void __fastcall TFormMain::btn_TestClick(TObject *Sender)
 	grid->Ints[8][6] += 1;
 
 	// Find External FTP Server Program
+
 }
 //---------------------------------------------------------------------------
 
@@ -385,6 +394,14 @@ bool __fastcall TFormMain::CreateMulticastSocket() {
 		return false;
 	}
 
+	// Set Socket Option : Disable loopback
+	char loopch = 0;
+	//if (setsockopt(m_MCast_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0) {
+	// 	PrintMsg(L"Fail to set disable loopback");
+	//	return false;
+	//}
+
+
 	// Belows are Routine that setting socket buffer size. do not use in this project.
 	/*
 	int t_optval;
@@ -439,4 +456,62 @@ void __fastcall TFormMain::ReceiveMsg(TMessage &_msg) {
 }
 //---------------------------------------------------------------------------
 
+
+void __fastcall TFormMain::btn_TimerClick(TObject *Sender)
+{
+	tm_Info->Enabled = !tm_Info->Enabled;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
+{
+	BYTE *t_DataBuf = NULL;
+
+
+
+	// Process Received Data
+	for(int i = 0 ; i < 8 ; i++) {
+		if(m_Info[i].m_isConnected) {
+			m_Info[i].m_str_Status = L"Connected";
+			if(20 == m_Info[i].m_ConnectionTimeOutCnt++) {
+				m_Info[i].m_isConnected = false;
+				m_Info[i].m_ConnectionTimeOutCnt = 0;
+			}
+
+			t_DataBuf = m_Info[i].m_DataBuf;
+			m_Info[i].m_str_CarNum.sprintf(L"%X%X%X%X", t_DataBuf[3], t_DataBuf[4], t_DataBuf[5], t_DataBuf[6]);
+			m_Info[i].m_value_FTP = t_DataBuf[7];
+			m_Info[i].m_value_FLS = t_DataBuf[8];
+			m_Info[i].m_str_Version.sprintf(L"%02X.%02X", t_DataBuf[9], t_DataBuf[10]);
+			m_Info[i].m_str_Date.sprintf(L"20%02X.%02X.%02X %02x.%02x.%02X",t_DataBuf[11], t_DataBuf[12], t_DataBuf[13], t_DataBuf[14], t_DataBuf[15], t_DataBuf[16]);
+
+			if(m_Info[i].m_value_FLS == 100) {
+				m_Info[i].m_str_Result = L"Complete";
+			} else {
+				m_Info[i].m_str_Result = L"Complete";
+			}
+		} else {
+			// Disconnected : Reset Grid Row
+			m_Info[i].m_str_Status = L"Disconnected";
+			m_Info[i].m_str_CarNum = L"";
+			m_Info[i].m_value_FTP = 0;
+			m_Info[i].m_value_FLS = 0;
+			m_Info[i].m_str_Version = L"";
+			m_Info[i].m_str_Date = L"";
+			m_Info[i].m_str_Result = L"";
+		}
+	}
+
+	// Print Info into Grid
+	for(int i = 0 ; i < 8 ; i++) {
+		grid->Cells[1][i + 1] = m_Info[i].m_str_Status;
+		grid->Cells[4][i + 1] = m_Info[i].m_str_CarNum;
+		grid->Cells[6][i + 1] = m_Info[i].m_str_Version;
+		grid->Cells[7][i + 1] = m_Info[i].m_str_Date;
+		grid->Ints[8][i + 1] = m_Info[i].m_value_FTP;
+		grid->Ints[9][i + 1] = m_Info[i].m_value_FLS;
+		grid->Cells[10][i + 1] = m_Info[i].m_str_Result;
+	}
+}
+//---------------------------------------------------------------------------
 

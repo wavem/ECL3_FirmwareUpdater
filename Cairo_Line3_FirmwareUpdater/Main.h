@@ -3,13 +3,7 @@
 #ifndef MainH
 #define MainH
 //---------------------------------------------------------------------------
-#define LOCAL_IP "192.168.0.47"
-#define MULTICAST_IP "239.255.93.18"
-#define MULTICAST_PORT 50101
-
-#define MSG_LOG	40000
-#define MCAST_PACKET_SIZE 17
-//---------------------------------------------------------------------------
+#include "Define.h"
 #include "Version.h"
 #include "MulticastThread.h"
 #include <tlhelp32.h>
@@ -95,6 +89,7 @@
 #include <IdTCPServer.hpp>
 //---------------------------------------------------------------------------
 class CMulticastThread;
+class UpdateInfo;
 class TFormMain : public TForm
 {
 __published:	// IDE-managed Components
@@ -116,6 +111,8 @@ __published:	// IDE-managed Components
 	TdxBarLargeButton *MenuBtn_Status;
 	TAdvSmoothButton *btn_Reset;
 	TAdvSmoothButton *btn_Setup;
+	TTimer *tm_Info;
+	TAdvSmoothButton *btn_Timer;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall MenuBtn_VersionClick(TObject *Sender);
 	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
@@ -124,6 +121,8 @@ __published:	// IDE-managed Components
 	void __fastcall MenuBtn_StatusClick(TObject *Sender);
 	void __fastcall btn_ResetClick(TObject *Sender);
 	void __fastcall btn_SetupClick(TObject *Sender);
+	void __fastcall btn_TimerClick(TObject *Sender);
+	void __fastcall tm_InfoTimer(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
@@ -140,6 +139,9 @@ public: // START FIRMWARE UPDATER PROGRAM : Variable
 	struct ip_mreq m_ip_mreq;
 	struct sockaddr_in m_addr_in;
 	CMulticastThread *m_MCastThread;
+
+	UpdateInfo *m_Info;
+	BYTE m_SendDataBuf[8];
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
