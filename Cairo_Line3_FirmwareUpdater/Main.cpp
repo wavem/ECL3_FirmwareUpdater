@@ -110,6 +110,10 @@ void __fastcall TFormMain::InitProgram() {
 	// Update Info Class
 	m_Info = new UpdateInfo[8];
 
+	// ETC
+	m_IsReadyToComm = false;
+	m_Delay = 0;
+
 	// Init Socket
 	WSADATA data;
 	WORD version;
@@ -190,6 +194,9 @@ void __fastcall TFormMain::MenuBtn_SettingClick(TObject *Sender)
 void __fastcall TFormMain::MenuBtn_UpdateClick(TObject *Sender)
 {
 	// Update Routine
+	tm_Polling->Enabled = false;
+	tm_UpdateDelay->Enabled = true;
+	SendUpdateMessage();
 }
 //---------------------------------------------------------------------------
 
@@ -342,12 +349,16 @@ void __fastcall TFormMain::Reset() {
 
 void __fastcall TFormMain::btn_SetupClick(TObject *Sender)
 {
-	if(CreateMulticastSocket() == false) {
+	m_IsReadyToComm = CreateMulticastSocket();
+	if(m_IsReadyToComm == false) {
 		if(m_MCast_socket != NULL) {
 			closesocket(m_MCast_socket);
 			m_MCast_socket = NULL;
 		}
+		return;
 	}
+
+	tm_Polling->Enabled = true;
 }
 //---------------------------------------------------------------------------
 
@@ -512,6 +523,127 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 		grid->Ints[9][i + 1] = m_Info[i].m_value_FLS;
 		grid->Cells[10][i + 1] = m_Info[i].m_str_Result;
 	}
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_SendClick(TObject *Sender)
+{
+	SendUpdateMessage();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::tm_PollingTimer(TObject *Sender)
+{
+	// Common
+	UnicodeString tempStr = L"";
+
+	if(m_IsReadyToComm == false) {
+		PrintMsg(L"Communication not yet ready");
+		return;
+	}
+
+	unsigned char sendBuf[8] = {0, };
+	sendBuf[0] = 0x5A;
+	sendBuf[1] = 0x5A;
+	sendBuf[2] = 0x01;
+	sendBuf[3] = 0x00;
+	sendBuf[4] = 0x00;
+	sendBuf[5] = 0x00;
+	sendBuf[6] = 0x00;
+	sendBuf[7] = 0x00;
+	int t_sendBufLen = 8;
+
+	struct sockaddr_in multicastAddr;
+	multicastAddr.sin_family = AF_INET;
+	multicastAddr.sin_addr.s_addr = inet_addr(MULTICAST_IP);
+	multicastAddr.sin_port = htons(MULTICAST_PORT);
+
+	int t_sendrst = sendto(m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
+	tempStr.sprintf(L"Send Result(Size) : %d", t_sendrst);
+	PrintMsg(tempStr);
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TFormMain::SendUpdateMessage() {
+	// Common
+	UnicodeString tempStr = L"";
+
+	if(m_IsReadyToComm == false) {
+		PrintMsg(L"Communication not yet ready");
+		return false;
+	}
+
+	// Find Update File and Read File Size
+	int t_FileSize = 0;
+	AnsiString t_folderPath = ".\\";
+	AnsiString t_fileName = "vxWorks";
+	AnsiString t_dstPath = "";
+	t_dstPath = t_folderPath + t_fileName;
+
+	FILE* t_fp = NULL;
+	t_fp = fopen(t_dstPath.c_str(), "rb");
+	if(t_fp == NULL) {
+		PrintMsg(L"Can not open update file");
+		Application->MessageBoxW(L"Can not find vxWorks", L"Error", MB_OK | MB_ICONWARNING);
+		return false;
+	}
+	fseek(t_fp, 0, SEEK_END);
+	t_FileSize = ftell(t_fp);
+	fclose(t_fp); // Leave this, because of the case : Thread die by unknown reasons....
+	t_fp = NULL;
+
+	tempStr.sprintf(L"vxWorks File Size : %d", t_FileSize);
+	PrintMsg(tempStr);
+
+	// Input File Size Value into Byte Stream
+	DWORD t_dw = t_FileSize;
+	BYTE t_1 = t_dw >> 24;
+	BYTE t_2 = t_dw >> 16;
+	BYTE t_3 = t_dw >>  8;
+	BYTE t_4 = t_dw & 0x000000FF;
+
+	//tempStr.sprintf(L"BYTE_1 : %02X", t_1);
+	//PrintMsg(tempStr);
+	//tempStr.sprintf(L"BYTE_2 : %02X", t_2);
+	//PrintMsg(tempStr);
+	//tempStr.sprintf(L"BYTE_3 : %02X", t_3);
+	//PrintMsg(tempStr);
+	//tempStr.sprintf(L"BYTE_4 : %02X", t_4);
+	//PrintMsg(tempStr);
+
+	// Send Data Routine
+	unsigned char sendBuf[8] = {0, };
+	sendBuf[0] = 0x5A;
+	sendBuf[1] = 0x5A;
+	sendBuf[2] = 0x02;
+	sendBuf[3] = 0x00;
+	sendBuf[4] = t_1;
+	sendBuf[5] = t_2;
+	sendBuf[6] = t_3;
+	sendBuf[7] = t_4;
+	int t_sendBufLen = 8;
+
+	struct sockaddr_in multicastAddr;
+	multicastAddr.sin_family = AF_INET;
+	multicastAddr.sin_addr.s_addr = inet_addr(MULTICAST_IP);
+	multicastAddr.sin_port = htons(MULTICAST_PORT);
+
+	int t_sendrst = sendto(m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
+	tempStr.sprintf(L"Send Result(Size) : %d", t_sendrst);
+	PrintMsg(tempStr);
+
+	return true;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::tm_UpdateDelayTimer(TObject *Sender)
+{
+	if(m_Delay == 1) {
+		tm_UpdateDelay->Enabled = false;
+		m_Delay = 0;
+		tm_Polling->Enabled = true;
+	}
+	m_Delay++;
 }
 //---------------------------------------------------------------------------
 

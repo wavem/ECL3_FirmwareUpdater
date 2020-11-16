@@ -130,3 +130,4 @@ ProtocolScreen.cpp.bak
 *.pdi
 *.ild
 *.#00
+Cairo_Line3_FirmwareUpdater/Win32/Debug/vxWorks

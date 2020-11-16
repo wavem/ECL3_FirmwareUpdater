@@ -7,6 +7,7 @@
 #include "Version.h"
 #include "MulticastThread.h"
 #include <tlhelp32.h>
+#include <stdio.h>
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
@@ -113,6 +114,9 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btn_Setup;
 	TTimer *tm_Info;
 	TAdvSmoothButton *btn_Timer;
+	TAdvSmoothButton *btn_Send;
+	TTimer *tm_Polling;
+	TTimer *tm_UpdateDelay;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall MenuBtn_VersionClick(TObject *Sender);
 	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
@@ -123,6 +127,9 @@ __published:	// IDE-managed Components
 	void __fastcall btn_SetupClick(TObject *Sender);
 	void __fastcall btn_TimerClick(TObject *Sender);
 	void __fastcall tm_InfoTimer(TObject *Sender);
+	void __fastcall btn_SendClick(TObject *Sender);
+	void __fastcall tm_PollingTimer(TObject *Sender);
+	void __fastcall tm_UpdateDelayTimer(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
@@ -139,9 +146,12 @@ public: // START FIRMWARE UPDATER PROGRAM : Variable
 	struct ip_mreq m_ip_mreq;
 	struct sockaddr_in m_addr_in;
 	CMulticastThread *m_MCastThread;
+	bool m_IsReadyToComm;
 
 	UpdateInfo *m_Info;
 	BYTE m_SendDataBuf[8];
+
+	int m_Delay; // Send Packet Timer Deley
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
@@ -153,6 +163,7 @@ public: // START FIRMWARE UPDATER PROGRAM : Func
 
 	// Socket
 	bool __fastcall CreateMulticastSocket();
+	bool __fastcall SendUpdateMessage();
 
 	// Message Handler
 	void __fastcall ReceiveMsg(TMessage &_msg);
