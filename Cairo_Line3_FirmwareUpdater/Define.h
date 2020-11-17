@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 //---------------------------------------------------------------------------
-#define LOCAL_IP "192.168.0.47"
+#define LOCAL_IP "192.168.0.202"
 #define MULTICAST_IP "239.255.93.18"
 #define MULTICAST_PORT 50101
 
@@ -13,9 +13,9 @@
 #define MCAST_PACKET_SIZE_RCV 17
 #define MCAST_PACKET_SIZE_SND 8
 
-#define IP_DTCa_CCU1 "192.168.0.47"
+#define IP_DTCa_CCU1 "192.168.0.51"
 #define IP_DTCa_CCU2 "192.168.0.52"
-#define IP_MCIa_VCU1 "192.168.3.41"
+#define IP_MCIa_VCU1 "192.168.3.51"
 #define IP_MCIa_VCU2 "192.168.3.52"
 #define IP_MCIb_VCU1 "192.168.4.51"
 #define IP_MCIb_VCU2 "192.168.4.52"

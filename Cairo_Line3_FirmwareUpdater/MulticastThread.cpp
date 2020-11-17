@@ -37,16 +37,16 @@ void __fastcall CMulticastThread::Execute() {
 	t_StrList_IP[6] = IP_DTCb_CCU1;
 	t_StrList_IP[7] = IP_DTCb_CCU2;
 
-	unsigned char sendBuf[8] = {0, };
-	sendBuf[0] = 0x5A;
-	sendBuf[1] = 0x5A;
-	sendBuf[2] = 0x5A;
-	sendBuf[3] = 0x5A;
-	sendBuf[4] = 0x5A;
-	sendBuf[5] = 0x5A;
-	sendBuf[6] = 0x5A;
-	sendBuf[7] = 0x5A;
-	int t_sendBufLen = 8;
+	//unsigned char sendBuf[8] = {0, };
+	//sendBuf[0] = 0x5A;
+	//sendBuf[1] = 0x5A;
+	//sendBuf[2] = 0x01;
+	//sendBuf[3] = 0x00;
+	//sendBuf[4] = 0x00;
+	//sendBuf[5] = 0x00;
+	//sendBuf[6] = 0x00;
+	//sendBuf[7] = 0x00;
+	//int t_sendBufLen = 8;
 
 	struct sockaddr_in multicastAddr;
 	multicastAddr.sin_family = AF_INET;
@@ -90,19 +90,18 @@ void __fastcall CMulticastThread::Execute() {
 			}
 
 			// Show Received Data
-			t_Str += L"  Data : ";
+			t_Str += L" : ";
 			for(int i = 0 ; i < MCAST_PACKET_SIZE_RCV ; i++) {
-				tempStr.sprintf(L"%02x ", recv_buff[i]);
+				tempStr.sprintf(L"%02X ", recv_buff[i]);
 				t_Str += tempStr;
 			}
 			//t_Str.sprintf(L"%02x %02x %02x %02x", recv_buff[0], recv_buff[1], recv_buff[2], recv_buff[3]);
 			SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
 
-
 			// Show Received Data Size
-			int t_sendrst = sendto(*m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
-			t_Str.sprintf(L"Send Size : %d", t_sendrst);
-			SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
+			//int t_sendrst = sendto(*m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
+			//t_Str.sprintf(L"Send Size : %d", t_sendrst);
+			//SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
 		}
 		//SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
 

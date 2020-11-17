@@ -88,6 +88,8 @@
 #include <IdExplicitTLSClientServerBase.hpp>
 #include <IdFTPServer.hpp>
 #include <IdTCPServer.hpp>
+#include "AdvSmoothComboBox.hpp"
+#include "AdvSmoothListBox.hpp"
 //---------------------------------------------------------------------------
 class CMulticastThread;
 class UpdateInfo;
@@ -117,6 +119,10 @@ __published:	// IDE-managed Components
 	TAdvSmoothButton *btn_Send;
 	TTimer *tm_Polling;
 	TTimer *tm_UpdateDelay;
+	TAdvSmoothButton *btn_Apply_PollingPeriod;
+	TAdvSmoothComboBox *cb_SendPeriod;
+	TLabel *lb_Setting_1;
+	TAdvSmoothButton *btn_Stop;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall MenuBtn_VersionClick(TObject *Sender);
 	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
@@ -130,6 +136,8 @@ __published:	// IDE-managed Components
 	void __fastcall btn_SendClick(TObject *Sender);
 	void __fastcall tm_PollingTimer(TObject *Sender);
 	void __fastcall tm_UpdateDelayTimer(TObject *Sender);
+	void __fastcall btn_Apply_PollingPeriodClick(TObject *Sender);
+	void __fastcall btn_StopClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
@@ -151,7 +159,9 @@ public: // START FIRMWARE UPDATER PROGRAM : Variable
 	UpdateInfo *m_Info;
 	BYTE m_SendDataBuf[8];
 
+	// ETC
 	int m_Delay; // Send Packet Timer Deley
+	bool m_bPrintIdxFixed;
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();

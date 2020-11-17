@@ -72,6 +72,8 @@
 #pragma link "BaseGrid"
 #pragma link "AdvSmoothButton"
 #pragma link "AdvMemo"
+#pragma link "AdvSmoothComboBox"
+#pragma link "AdvSmoothListBox"
 #pragma resource "*.dfm"
 TFormMain *FormMain;
 //---------------------------------------------------------------------------
@@ -113,6 +115,7 @@ void __fastcall TFormMain::InitProgram() {
 	// ETC
 	m_IsReadyToComm = false;
 	m_Delay = 0;
+	m_bPrintIdxFixed = false;
 
 	// Init Socket
 	WSADATA data;
@@ -175,7 +178,9 @@ void __fastcall TFormMain::ExitProgram() {
 
 void __fastcall TFormMain::PrintMsg(UnicodeString _str) {
 	int t_Idx = memo->Lines->Add(_str);
-	memo->SetCursor(0, t_Idx);
+	if(m_bPrintIdxFixed == false) {
+		memo->SetCursor(0, t_Idx);
+	}
 }
 //---------------------------------------------------------------------------
 
@@ -194,6 +199,9 @@ void __fastcall TFormMain::MenuBtn_SettingClick(TObject *Sender)
 void __fastcall TFormMain::MenuBtn_UpdateClick(TObject *Sender)
 {
 	// Update Routine
+	int t_result = Application->MessageBoxW(L"Are you sure you want to upload TCMS software?", L"TCMS Update", MB_YESNO | MB_ICONQUESTION);
+	if(t_result == IDNO) return;
+
 	tm_Polling->Enabled = false;
 	tm_UpdateDelay->Enabled = true;
 	SendUpdateMessage();
@@ -213,11 +221,11 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	//Idx, Status
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->Cells[0][i] = i;
-		grid->Cells[1][i] = L"Disconnected"; // Status
-		grid->Cells[4][i] = L"3702"; // Car Num
-		grid->Cells[6][i] = L"00.01"; // Version
-		grid->Cells[7][i] = L"2020.11.12"; // Date
-		grid->Cells[10][i] = L"NG"; // Date
+		//grid->Cells[1][i] = L"Disconnected"; // Status
+		//grid->Cells[4][i] = L"3702"; // Car Num
+		//grid->Cells[6][i] = L"00.01"; // Version
+		//grid->Cells[7][i] = L"2020.11.12"; // Date
+		//grid->Cells[10][i] = L"NG"; // Date
 	}
 
 	// Car Name
@@ -253,30 +261,27 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	// Progress
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->AddAdvProgress(8, i, 0, 100);
-		grid->Ints[8][i] = 50;
+		grid->Ints[8][i] = 0;
 
 		grid->AddAdvProgress(9, i, 0, 100);
 		grid->Ints[9][i] = 0;
 	}
-	grid->Ints[8][1] = 25;
-	grid->Ints[8][2] = 75;
-	grid->Ints[8][3] = 100;
-	grid->Ints[8][4] = 10;
-	grid->Ints[8][5] = 99;
-	grid->Ints[8][6] = 0;
-	grid->Ints[8][7] = 49;
+	//grid->Ints[8][1] = 25;
+	//grid->Ints[8][2] = 75;
+	//grid->Ints[8][3] = 100;
+	//grid->Ints[8][4] = 10;
+	//grid->Ints[8][5] = 99;
+	//grid->Ints[8][6] = 0;
+	//grid->Ints[8][7] = 49;
 
-	grid->Ints[9][3] = 73;
+	//grid->Ints[9][3] = 73;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TFormMain::btn_TestClick(TObject *Sender)
 {
 	PrintMsg(L"TEST BUTTON CLICKED");
-	grid->Ints[8][6] += 1;
-
-	// Find External FTP Server Program
-
+	//grid->Ints[8][6] += 1;
 }
 //---------------------------------------------------------------------------
 
@@ -359,6 +364,7 @@ void __fastcall TFormMain::btn_SetupClick(TObject *Sender)
 	}
 
 	tm_Polling->Enabled = true;
+	tm_Info->Enabled = true;
 }
 //---------------------------------------------------------------------------
 
@@ -478,8 +484,6 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 {
 	BYTE *t_DataBuf = NULL;
 
-
-
 	// Process Received Data
 	for(int i = 0 ; i < 8 ; i++) {
 		if(m_Info[i].m_isConnected) {
@@ -490,16 +494,35 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 			}
 
 			t_DataBuf = m_Info[i].m_DataBuf;
-			m_Info[i].m_str_CarNum.sprintf(L"%X%X%X%X", t_DataBuf[3], t_DataBuf[4], t_DataBuf[5], t_DataBuf[6]);
+
+			switch(i) {
+			case 0: // DTCa CCU1
+			case 2: // MCIa VCU1
+				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 31);
+				break;
+			case 1: // DTCa CCU2
+			case 3: // MCIa VCU2
+				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 31);
+				break;
+			case 4: // MCIb VCU1
+			case 6: // DTCb CCU1
+				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 32);
+				break;
+			case 5: // MCIb VCU2
+			case 7: // DTCb CCU2
+				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 32);
+				break;
+			}
+
 			m_Info[i].m_value_FTP = t_DataBuf[7];
 			m_Info[i].m_value_FLS = t_DataBuf[8];
 			m_Info[i].m_str_Version.sprintf(L"%02X.%02X", t_DataBuf[9], t_DataBuf[10]);
-			m_Info[i].m_str_Date.sprintf(L"20%02X.%02X.%02X %02x.%02x.%02X",t_DataBuf[11], t_DataBuf[12], t_DataBuf[13], t_DataBuf[14], t_DataBuf[15], t_DataBuf[16]);
+			m_Info[i].m_str_Date.sprintf(L"20%02d.%02d.%02d %0dx.%02d.%02d",t_DataBuf[11], t_DataBuf[12], t_DataBuf[13], t_DataBuf[14], t_DataBuf[15], t_DataBuf[16]);
 
 			if(m_Info[i].m_value_FLS == 100) {
 				m_Info[i].m_str_Result = L"Complete";
 			} else {
-				m_Info[i].m_str_Result = L"Complete";
+				m_Info[i].m_str_Result = L"";
 			}
 		} else {
 			// Disconnected : Reset Grid Row
@@ -526,26 +549,26 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TFormMain::btn_SendClick(TObject *Sender)
-{
+void __fastcall TFormMain::btn_SendClick(TObject *Sender) {
 	SendUpdateMessage();
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TFormMain::tm_PollingTimer(TObject *Sender)
-{
+void __fastcall TFormMain::tm_PollingTimer(TObject *Sender) {
 	// Common
 	UnicodeString tempStr = L"";
+	UnicodeString t_Str = L"";
 
 	if(m_IsReadyToComm == false) {
 		PrintMsg(L"Communication not yet ready");
+		tm_Polling->Enabled = false;
 		return;
 	}
 
 	unsigned char sendBuf[8] = {0, };
 	sendBuf[0] = 0x5A;
 	sendBuf[1] = 0x5A;
-	sendBuf[2] = 0x01;
+	sendBuf[2] = 0x01; // Polling : 0x01
 	sendBuf[3] = 0x00;
 	sendBuf[4] = 0x00;
 	sendBuf[5] = 0x00;
@@ -559,7 +582,11 @@ void __fastcall TFormMain::tm_PollingTimer(TObject *Sender)
 	multicastAddr.sin_port = htons(MULTICAST_PORT);
 
 	int t_sendrst = sendto(m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
-	tempStr.sprintf(L"Send Result(Size) : %d", t_sendrst);
+	tempStr = L"Send Data : ";
+	for(int i = 0 ; i < 8 ; i++) {
+		t_Str.sprintf(L"%02X ", sendBuf[i]);
+		tempStr += t_Str;
+	}
 	PrintMsg(tempStr);
 }
 //---------------------------------------------------------------------------
@@ -575,7 +602,8 @@ bool __fastcall TFormMain::SendUpdateMessage() {
 
 	// Find Update File and Read File Size
 	int t_FileSize = 0;
-	AnsiString t_folderPath = ".\\";
+	//AnsiString t_folderPath = ".\\";
+	AnsiString t_folderPath = "C:\\Works\\Projects\\Tunisia112\\";
 	AnsiString t_fileName = "vxWorks";
 	AnsiString t_dstPath = "";
 	t_dstPath = t_folderPath + t_fileName;
@@ -646,4 +674,36 @@ void __fastcall TFormMain::tm_UpdateDelayTimer(TObject *Sender)
 	m_Delay++;
 }
 //---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_Apply_PollingPeriodClick(TObject *Sender)
+{
+	int t_result = Application->MessageBoxW(L"Are you sure you want to change multicast polling period?", L"TCMS Update", MB_YESNO | MB_ICONQUESTION);
+	if(t_result == IDNO) return;
+
+	int t_SelectedIdx = cb_SendPeriod->SelectedItemIndex;
+	switch(t_SelectedIdx) {
+	case 0:
+		tm_Polling->Interval = 1000;
+		break;
+	case 1:
+		tm_Polling->Interval = 2000;
+		break;
+	case 2:
+		tm_Polling->Interval = 500;
+		break;
+	case 3:
+		tm_Polling->Interval = 250;
+		break;
+	default:
+		break;
+	}
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_StopClick(TObject *Sender)
+{
+	m_bPrintIdxFixed = !m_bPrintIdxFixed;
+}
+//---------------------------------------------------------------------------
+
 
