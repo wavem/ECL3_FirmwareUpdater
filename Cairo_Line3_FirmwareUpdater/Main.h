@@ -112,11 +112,8 @@ __published:	// IDE-managed Components
 	TAdvMemo *memo;
 	TdxBar *dxBarMgrBar2;
 	TdxBarLargeButton *MenuBtn_Status;
-	TAdvSmoothButton *btn_Reset;
 	TAdvSmoothButton *btn_Setup;
 	TTimer *tm_Info;
-	TAdvSmoothButton *btn_Timer;
-	TAdvSmoothButton *btn_Send;
 	TTimer *tm_Polling;
 	TTimer *tm_UpdateDelay;
 	TAdvSmoothButton *btn_Apply_PollingPeriod;
@@ -129,11 +126,8 @@ __published:	// IDE-managed Components
 	void __fastcall MenuBtn_SettingClick(TObject *Sender);
 	void __fastcall btn_TestClick(TObject *Sender);
 	void __fastcall MenuBtn_StatusClick(TObject *Sender);
-	void __fastcall btn_ResetClick(TObject *Sender);
 	void __fastcall btn_SetupClick(TObject *Sender);
-	void __fastcall btn_TimerClick(TObject *Sender);
 	void __fastcall tm_InfoTimer(TObject *Sender);
-	void __fastcall btn_SendClick(TObject *Sender);
 	void __fastcall tm_PollingTimer(TObject *Sender);
 	void __fastcall tm_UpdateDelayTimer(TObject *Sender);
 	void __fastcall btn_Apply_PollingPeriodClick(TObject *Sender);
@@ -168,8 +162,7 @@ public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall ExitProgram();
 	void __fastcall PrintMsg(UnicodeString _str);
 	void __fastcall GridDefaultSetting();
-	void __fastcall RunExternalFTPServer();
-	void __fastcall Reset();
+	bool __fastcall RunExternalFTPServer();
 
 	// Socket
 	bool __fastcall CreateMulticastSocket();

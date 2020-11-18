@@ -9,9 +9,6 @@
 __fastcall CMulticastThread::CMulticastThread(SOCKET *p_sock) {
 	m_eThreadWork = THREAD_STOP;
 	Priority = tpTimeCritical;
-	m_StartTime = Now();
-	m_CurrentTime = m_StartTime;
-	m_msg = L"";
 	m_MCast_socket = p_sock;
 }
 //---------------------------------------------------------------------------
@@ -36,17 +33,6 @@ void __fastcall CMulticastThread::Execute() {
 	t_StrList_IP[5] = IP_MCIb_VCU2;
 	t_StrList_IP[6] = IP_DTCb_CCU1;
 	t_StrList_IP[7] = IP_DTCb_CCU2;
-
-	//unsigned char sendBuf[8] = {0, };
-	//sendBuf[0] = 0x5A;
-	//sendBuf[1] = 0x5A;
-	//sendBuf[2] = 0x01;
-	//sendBuf[3] = 0x00;
-	//sendBuf[4] = 0x00;
-	//sendBuf[5] = 0x00;
-	//sendBuf[6] = 0x00;
-	//sendBuf[7] = 0x00;
-	//int t_sendBufLen = 8;
 
 	struct sockaddr_in multicastAddr;
 	multicastAddr.sin_family = AF_INET;
@@ -77,7 +63,7 @@ void __fastcall CMulticastThread::Execute() {
 			// Continue, If received packet is from mine.
 			if(recv_size == 8) continue;
 
-			// Convert IP Address String
+			// Convert IP Address as String
 			t_Str = inet_ntoa(sender_addr.sin_addr);
 
 			// Set Connection Information
@@ -95,15 +81,8 @@ void __fastcall CMulticastThread::Execute() {
 				tempStr.sprintf(L"%02X ", recv_buff[i]);
 				t_Str += tempStr;
 			}
-			//t_Str.sprintf(L"%02x %02x %02x %02x", recv_buff[0], recv_buff[1], recv_buff[2], recv_buff[3]);
 			SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
-
-			// Show Received Data Size
-			//int t_sendrst = sendto(*m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
-			//t_Str.sprintf(L"Send Size : %d", t_sendrst);
-			//SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
 		}
-		//SendMessage(FormMain->Handle, MSG_LOG, (unsigned int)&t_Str, 0x10);
 
 		WaitForSingleObject((void*)this->Handle, 50);
 	}
@@ -128,15 +107,5 @@ void __fastcall CMulticastThread::DoTerminate() {
 
 ThreadWorkingType __fastcall CMulticastThread::GetThreadStatus() {
 	return m_eThreadWork;
-}
-//---------------------------------------------------------------------------
-
-TTime __fastcall CMulticastThread::GetStartTime() {
-	return m_StartTime;
-}
-//---------------------------------------------------------------------------
-
-TTime __fastcall CMulticastThread::GetCurrentTime() {
-	return m_CurrentTime;
 }
 //---------------------------------------------------------------------------

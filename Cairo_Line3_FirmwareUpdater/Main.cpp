@@ -116,6 +116,7 @@ void __fastcall TFormMain::InitProgram() {
 	m_IsReadyToComm = false;
 	m_Delay = 0;
 	m_bPrintIdxFixed = false;
+	memo->Width = 872;
 
 	// Init Socket
 	WSADATA data;
@@ -139,7 +140,107 @@ void __fastcall TFormMain::InitProgram() {
 	}
 
 	// Run External FTP Server Program
-	RunExternalFTPServer();
+	if(RunExternalFTPServer() == false) return;
+
+	// Create Multicast Socket
+	m_IsReadyToComm = CreateMulticastSocket();
+	if(m_IsReadyToComm == false) {
+		if(m_MCast_socket != NULL) {
+			closesocket(m_MCast_socket);
+			m_MCast_socket = NULL;
+		}
+		return;
+	}
+
+	// Timer Setting
+	tm_Polling->Enabled = true;
+	tm_Info->Enabled = true;
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TFormMain::CreateMulticastSocket() {
+
+	// Common
+	UnicodeString tempStr = L"";
+
+	if(m_MCast_socket != NULL) {
+		PrintMsg(L"Socket already exist");
+		return false; // Um..T.T.. Probably there will be nothing coming in here..
+	}
+
+	// Create Socket
+	m_MCast_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if(m_MCast_socket == INVALID_SOCKET) {
+		PrintMsg(L"Fail to create multicast socket");
+		return false;
+	}
+
+	// Set Socket Option : REUSE
+	int t_opt_reuse = 1;
+	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_REUSEADDR,(char *)&t_opt_reuse, sizeof(t_opt_reuse)) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to set socket option (REUSE)");
+		return false;
+	}
+
+	// Bind to the proper port number with the IP address
+	ZeroMemory(&m_addr_in, sizeof(m_addr_in));
+	m_addr_in.sin_family = AF_INET;
+	m_addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	m_addr_in.sin_port = htons(MULTICAST_PORT);
+	if(bind(m_MCast_socket, (struct sockaddr*)&m_addr_in, sizeof(m_addr_in))) {
+		PrintMsg(L"Fail to bind multicast socket");
+		return false;
+	}
+
+	// Join to Multicast Group
+	ZeroMemory(&m_ip_mreq, sizeof(m_ip_mreq));
+	m_ip_mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
+	m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
+	if(setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to join multicast group");
+		return false;
+	}
+
+	// Set Socket Option : Disable loopback, but in this project, it is not necessary, because the packet size which received is only 8 byte.
+	//char loopch = 0;
+	//if (setsockopt(m_MCast_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0) {
+	// 	PrintMsg(L"Fail to set disable loopback");
+	//	return false;
+	//}
+
+
+	// Belows are Routine that setting socket buffer size, but do not use in this project.
+	/*
+	int t_optval;
+	int t_optlen = sizeof(t_optval);
+	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to get socket buffer size");
+		return false;
+	}
+
+	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
+	PrintMsg(tempStr);
+
+	t_optval = 15000;
+	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, sizeof(t_optval)) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to set socket buffer size");
+		return false;
+	}
+
+	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
+		PrintMsg(L"Fail to get socket buffer size");
+		return false;
+	}
+	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
+	PrintMsg(tempStr);
+	*/
+
+	// Create Thread for Multicast Communication
+	m_MCastThread = new CMulticastThread(&m_MCast_socket);
+
+	// Success to Create Socket
+	PrintMsg(L"Success to create multicast socket");
+	return true;
 }
 //---------------------------------------------------------------------------
 
@@ -178,9 +279,9 @@ void __fastcall TFormMain::ExitProgram() {
 
 void __fastcall TFormMain::PrintMsg(UnicodeString _str) {
 	int t_Idx = memo->Lines->Add(_str);
-	if(m_bPrintIdxFixed == false) {
+	//if(m_bPrintIdxFixed == false) {
 		memo->SetCursor(0, t_Idx);
-	}
+	//}
 }
 //---------------------------------------------------------------------------
 
@@ -210,6 +311,7 @@ void __fastcall TFormMain::MenuBtn_UpdateClick(TObject *Sender)
 
 void __fastcall TFormMain::MenuBtn_VersionClick(TObject *Sender)
 {
+	// Version Info
 	TFormVersion *dlg = new TFormVersion(NULL);
 	dlg->ShowModal();
 	delete dlg;
@@ -218,17 +320,12 @@ void __fastcall TFormMain::MenuBtn_VersionClick(TObject *Sender)
 
 void __fastcall TFormMain::GridDefaultSetting() {
 
-	//Idx, Status
+	// Grid Index Setting
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->Cells[0][i] = i;
-		//grid->Cells[1][i] = L"Disconnected"; // Status
-		//grid->Cells[4][i] = L"3702"; // Car Num
-		//grid->Cells[6][i] = L"00.01"; // Version
-		//grid->Cells[7][i] = L"2020.11.12"; // Date
-		//grid->Cells[10][i] = L"NG"; // Date
 	}
 
-	// Car Name
+	// Car Name Setting
 	grid->Cells[2][1] = L"DTCa";
 	grid->Cells[2][2] = L"DTCa";
 	grid->Cells[2][3] = L"MCIa";
@@ -238,7 +335,7 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	grid->Cells[2][7] = L"DTCb";
 	grid->Cells[2][8] = L"DTCb";
 
-	// Device Name
+	// Device Name Setting
 	grid->Cells[3][1] = L"CCU1";
 	grid->Cells[3][2] = L"CCU2";
 	grid->Cells[3][3] = L"VCU1";
@@ -248,17 +345,17 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	grid->Cells[3][7] = L"CCU1";
 	grid->Cells[3][8] = L"CCU2";
 
-	// Device Name
+	// Device IP Setting
 	grid->Cells[5][1] = L"192.168.0.51";
 	grid->Cells[5][2] = L"192.168.0.52";
 	grid->Cells[5][3] = L"192.168.3.51";
 	grid->Cells[5][4] = L"192.168.3.52";
 	grid->Cells[5][5] = L"192.168.4.51";
-	grid->Cells[5][6] = L"192.168.5.52";
+	grid->Cells[5][6] = L"192.168.4.52";
 	grid->Cells[5][7] = L"192.168.7.51";
 	grid->Cells[5][8] = L"192.168.7.52";
 
-	// Progress
+	// Progress Default Setting
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->AddAdvProgress(8, i, 0, 100);
 		grid->Ints[8][i] = 0;
@@ -266,26 +363,16 @@ void __fastcall TFormMain::GridDefaultSetting() {
 		grid->AddAdvProgress(9, i, 0, 100);
 		grid->Ints[9][i] = 0;
 	}
-	//grid->Ints[8][1] = 25;
-	//grid->Ints[8][2] = 75;
-	//grid->Ints[8][3] = 100;
-	//grid->Ints[8][4] = 10;
-	//grid->Ints[8][5] = 99;
-	//grid->Ints[8][6] = 0;
-	//grid->Ints[8][7] = 49;
-
-	//grid->Ints[9][3] = 73;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TFormMain::btn_TestClick(TObject *Sender)
 {
 	PrintMsg(L"TEST BUTTON CLICKED");
-	//grid->Ints[8][6] += 1;
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TFormMain::RunExternalFTPServer() {
+bool __fastcall TFormMain::RunExternalFTPServer() {
 
 	UnicodeString t_dirPath = L"\\ftpserv\\";
 	UnicodeString t_fileName = L"ftpserv.exe";
@@ -314,9 +401,10 @@ void __fastcall TFormMain::RunExternalFTPServer() {
 	if(ret) {
 		//Application->MessageBoxW(L"ftpserv is already running", L"", MB_OK | MB_ICONINFORMATION);
 		PrintMsg(L"FTP Server is already running...");
+		return true;
 	} else {
 		//ShellExecute(NULL, L"open", t_fileName.c_str(), NULL, t_dirPath.c_str(), SW_SHOWDEFAULT);
-		// ShellExecute 방식 안쓰고 아래 방식으로 간다. (찾아서 닫기 위해서...)
+		// Do not use ShellExecute, because I have to find the process for closing.. mjw.
 		ZeroMemory( &m_si, sizeof( m_si ) );
 		ZeroMemory( &m_pi, sizeof( m_pi ) );
 		m_si.cb = sizeof( STARTUPINFO );
@@ -325,29 +413,11 @@ void __fastcall TFormMain::RunExternalFTPServer() {
 		bool t_bRet = CreateProcess( NULL, t_path.c_str(), NULL, NULL, FALSE, NULL, NULL, NULL, &m_si, &m_pi );
 		if(t_bRet) {
 			PrintMsg(L"Success to open FTP Server");
+			return true;
 		} else {
 			PrintMsg(L"Fil to open FTP Server");
+			return false;
 		}
-	}
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TFormMain::btn_ResetClick(TObject *Sender)
-{
-	Reset(); // Grid Reset
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TFormMain::Reset() {
-	// Progress
-	for(int i = 1 ; i < 9 ; i++) {
-		grid->Cells[1][i] = L""; // Status
-		grid->Cells[4][i] = L""; // Num
-		grid->Cells[6][i] = L""; // Version
-		grid->Cells[7][i] = L""; // Date
-		grid->Ints[8][i] = 0;
-		grid->Ints[9][i] = 0;
-		grid->Cells[10][i] = L""; // Result
 	}
 }
 //---------------------------------------------------------------------------
@@ -368,97 +438,6 @@ void __fastcall TFormMain::btn_SetupClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-bool __fastcall TFormMain::CreateMulticastSocket() {
-	// Common
-	UnicodeString tempStr = L"";
-
-	if(m_MCast_socket != NULL) {
-		PrintMsg(L"Socket already exist");
-		return true; // Um..T.T..
-	}
-
-	// Create Socket
-	m_MCast_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-	if(m_MCast_socket == INVALID_SOCKET) {
-		PrintMsg(L"Fail to create multicast socket");
-		return false;
-	}
-
-	// Set Socket Option : REUSE
-	int t_opt_reuse = 1;
-	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_REUSEADDR,(char *)&t_opt_reuse, sizeof(t_opt_reuse)) == SOCKET_ERROR)
-	{
-		PrintMsg(L"Fail to create multicast socket");
-		return false;
-	}
-
-	// Bind to the proper port number with the IP address
-	ZeroMemory(&m_addr_in, sizeof(m_addr_in));
-	m_addr_in.sin_family = AF_INET;
-	m_addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	m_addr_in.sin_port = htons(MULTICAST_PORT);
-	if(bind(m_MCast_socket, (struct sockaddr*)&m_addr_in, sizeof(m_addr_in))) {
-		PrintMsg(L"Fail to bind multicast socket");
-		return false;
-	}
-
-	// Join to Multicast Group
-	ZeroMemory(&m_ip_mreq, sizeof(m_ip_mreq));
-	m_ip_mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
-	m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
-	if(setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR) {
-		PrintMsg(L"Fail to join multicast group");
-		return false;
-	}
-
-	// Set Socket Option : Disable loopback
-	char loopch = 0;
-	//if (setsockopt(m_MCast_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch)) < 0) {
-	// 	PrintMsg(L"Fail to set disable loopback");
-	//	return false;
-	//}
-
-
-	// Belows are Routine that setting socket buffer size. do not use in this project.
-	/*
-	int t_optval;
-	int t_optlen = sizeof(t_optval);
-	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
-		PrintMsg(L"Fail to get socket buffer size");
-		return false;
-	}
-
-	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
-	PrintMsg(tempStr);
-
-	t_optval = 15000;
-	if(setsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, sizeof(t_optval)) == SOCKET_ERROR) {
-		PrintMsg(L"Fail to set socket buffer size");
-		return false;
-	}
-
-	if(getsockopt(m_MCast_socket, SOL_SOCKET, SO_RCVBUF, (char*)&t_optval, &t_optlen) == SOCKET_ERROR) {
-		PrintMsg(L"Fail to get socket buffer size");
-		return false;
-	}
-	tempStr.sprintf(L"Socket Buff Size : %d", t_optval);
-	PrintMsg(tempStr);
-	*/
-
-
-	//LOCAL_IP "192.168.0.201"
-	//MULTICAST_IP "239.255.93.18"
-	//MULTICAST_PORT 50101;
-
-	m_MCastThread = new CMulticastThread(&m_MCast_socket);
-
-
-	// Success to Create Socket
-	PrintMsg(L"Success to create multicast socket");
-	return true;
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TFormMain::ReceiveMsg(TMessage &_msg) {
 	unsigned int t_wParam = _msg.WParam;
 	int t_lParam = _msg.LParam;
@@ -470,13 +449,6 @@ void __fastcall TFormMain::ReceiveMsg(TMessage &_msg) {
 	//tempStr.sprintf(L"W : %08x, L : %08x", t_wParam, t_lParam);
 	int t_Idx = memo->Lines->Add(tempStr);
 	memo->SetCursor(0, t_Idx);
-}
-//---------------------------------------------------------------------------
-
-
-void __fastcall TFormMain::btn_TimerClick(TObject *Sender)
-{
-	tm_Info->Enabled = !tm_Info->Enabled;
 }
 //---------------------------------------------------------------------------
 
@@ -549,11 +521,6 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TFormMain::btn_SendClick(TObject *Sender) {
-	SendUpdateMessage();
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TFormMain::tm_PollingTimer(TObject *Sender) {
 	// Common
 	UnicodeString tempStr = L"";
@@ -592,17 +559,18 @@ void __fastcall TFormMain::tm_PollingTimer(TObject *Sender) {
 //---------------------------------------------------------------------------
 
 bool __fastcall TFormMain::SendUpdateMessage() {
-	// Common
-	UnicodeString tempStr = L"";
 
+	// Pre Return
 	if(m_IsReadyToComm == false) {
 		PrintMsg(L"Communication not yet ready");
 		return false;
 	}
 
+	// Common
+	UnicodeString tempStr = L"";
+
 	// Find Update File and Read File Size
 	int t_FileSize = 0;
-	//AnsiString t_folderPath = ".\\";
 	AnsiString t_folderPath = "C:\\Works\\Projects\\Tunisia112\\";
 	AnsiString t_fileName = "vxWorks";
 	AnsiString t_dstPath = "";
@@ -630,15 +598,6 @@ bool __fastcall TFormMain::SendUpdateMessage() {
 	BYTE t_3 = t_dw >>  8;
 	BYTE t_4 = t_dw & 0x000000FF;
 
-	//tempStr.sprintf(L"BYTE_1 : %02X", t_1);
-	//PrintMsg(tempStr);
-	//tempStr.sprintf(L"BYTE_2 : %02X", t_2);
-	//PrintMsg(tempStr);
-	//tempStr.sprintf(L"BYTE_3 : %02X", t_3);
-	//PrintMsg(tempStr);
-	//tempStr.sprintf(L"BYTE_4 : %02X", t_4);
-	//PrintMsg(tempStr);
-
 	// Send Data Routine
 	unsigned char sendBuf[8] = {0, };
 	sendBuf[0] = 0x5A;
@@ -657,10 +616,15 @@ bool __fastcall TFormMain::SendUpdateMessage() {
 	multicastAddr.sin_port = htons(MULTICAST_PORT);
 
 	int t_sendrst = sendto(m_MCast_socket, sendBuf, 8, 0, (struct sockaddr*)&multicastAddr, sizeof(multicastAddr));
-	tempStr.sprintf(L"Send Result(Size) : %d", t_sendrst);
-	PrintMsg(tempStr);
-
-	return true;
+	if(t_sendrst == 0) {
+		tempStr.sprintf(L"Fail to Send Update Message");
+		PrintMsg(tempStr);
+		return false;
+	} else {
+		tempStr.sprintf(L"Success to Send Update Message(%d byte)", t_sendrst);
+		PrintMsg(tempStr);
+		return true;
+	}
 }
 //---------------------------------------------------------------------------
 
