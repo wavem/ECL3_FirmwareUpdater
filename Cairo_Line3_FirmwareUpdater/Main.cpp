@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "Main.h"
+#pragma comment(lib, "Shlwapi.lib")
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "cxClasses"
@@ -74,6 +75,77 @@
 #pragma link "AdvMemo"
 #pragma link "AdvSmoothComboBox"
 #pragma link "AdvSmoothListBox"
+#pragma link "AdvEdit"
+#pragma link "AdvIPEdit"
+#pragma link "AdvEdit"
+#pragma link "AdvGrid"
+#pragma link "AdvMemo"
+#pragma link "AdvObj"
+#pragma link "AdvSmoothButton"
+#pragma link "AdvSmoothComboBox"
+#pragma link "AdvSmoothListBox"
+#pragma link "BaseGrid"
+#pragma link "cxClasses"
+#pragma link "cxControls"
+#pragma link "cxGraphics"
+#pragma link "cxLookAndFeelPainters"
+#pragma link "cxLookAndFeels"
+#pragma link "dxBar"
+#pragma link "dxRibbon"
+#pragma link "dxRibbonCustomizationForm"
+#pragma link "dxRibbonSkins"
+#pragma link "dxSkinBlack"
+#pragma link "dxSkinBlue"
+#pragma link "dxSkinBlueprint"
+#pragma link "dxSkinCaramel"
+#pragma link "dxSkinCoffee"
+#pragma link "dxSkinDarkRoom"
+#pragma link "dxSkinDarkSide"
+#pragma link "dxSkinDevExpressDarkStyle"
+#pragma link "dxSkinDevExpressStyle"
+#pragma link "dxSkinFoggy"
+#pragma link "dxSkinGlassOceans"
+#pragma link "dxSkinHighContrast"
+#pragma link "dxSkiniMaginary"
+#pragma link "dxSkinLilian"
+#pragma link "dxSkinLiquidSky"
+#pragma link "dxSkinLondonLiquidSky"
+#pragma link "dxSkinMcSkin"
+#pragma link "dxSkinMetropolis"
+#pragma link "dxSkinMetropolisDark"
+#pragma link "dxSkinMoneyTwins"
+#pragma link "dxSkinOffice2007Black"
+#pragma link "dxSkinOffice2007Blue"
+#pragma link "dxSkinOffice2007Green"
+#pragma link "dxSkinOffice2007Pink"
+#pragma link "dxSkinOffice2007Silver"
+#pragma link "dxSkinOffice2010Black"
+#pragma link "dxSkinOffice2010Blue"
+#pragma link "dxSkinOffice2010Silver"
+#pragma link "dxSkinOffice2013DarkGray"
+#pragma link "dxSkinOffice2013LightGray"
+#pragma link "dxSkinOffice2013White"
+#pragma link "dxSkinPumpkin"
+#pragma link "dxSkinsCore"
+#pragma link "dxSkinsDefaultPainters"
+#pragma link "dxSkinsdxBarPainter"
+#pragma link "dxSkinsdxRibbonPainter"
+#pragma link "dxSkinSeven"
+#pragma link "dxSkinSevenClassic"
+#pragma link "dxSkinSharp"
+#pragma link "dxSkinSharpPlus"
+#pragma link "dxSkinSilver"
+#pragma link "dxSkinSpringTime"
+#pragma link "dxSkinStardust"
+#pragma link "dxSkinSummer2008"
+#pragma link "dxSkinTheAsphaltWorld"
+#pragma link "dxSkinValentine"
+#pragma link "dxSkinVisualStudio2013Blue"
+#pragma link "dxSkinVisualStudio2013Dark"
+#pragma link "dxSkinVisualStudio2013Light"
+#pragma link "dxSkinVS2010"
+#pragma link "dxSkinWhiteprint"
+#pragma link "dxSkinXmas2008Blue"
 #pragma resource "*.dfm"
 TFormMain *FormMain;
 //---------------------------------------------------------------------------
@@ -116,7 +188,8 @@ void __fastcall TFormMain::InitProgram() {
 	m_IsReadyToComm = false;
 	m_Delay = 0;
 	m_bPrintIdxFixed = false;
-	memo->Width = 872;
+	memo->Width = 872; // UI Control
+	m_UpdateFilePath = L"";
 
 	// Init Socket
 	WSADATA data;
@@ -139,6 +212,12 @@ void __fastcall TFormMain::InitProgram() {
 		PrintMsg(L"Socket init success");
 	}
 
+	// Read FTP Server Config File
+	if(ReadUpdateFilePath() == false) {
+		return;
+	}
+	ed_Path->Text = m_UpdateFilePath;
+
 	// Run External FTP Server Program
 	if(RunExternalFTPServer() == false) return;
 
@@ -155,6 +234,33 @@ void __fastcall TFormMain::InitProgram() {
 	// Timer Setting
 	tm_Polling->Enabled = true;
 	tm_Info->Enabled = true;
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TFormMain::ReadUpdateFilePath() {
+
+	// Common
+	UnicodeString tempStr = L"";
+	UnicodeString t_ConfigFilePath = L".\\ftpserv\\users.ini";
+	UnicodeString t_Section = L"same";
+	UnicodeString t_Key = "HomePath";
+	wchar_t Buffer[256] = {NULL, };
+
+	// Check Config File Existence
+	if(PathFileExists(t_ConfigFilePath.c_str()) == false) {
+		PrintMsg(L"There is no config file (users.ini)");
+		return false;
+	}
+
+	// Get Update File Path from Ini File
+	GetPrivateProfileString(t_Section.c_str(), t_Key.c_str(), L"NO_KEY", Buffer, 256, t_ConfigFilePath.c_str());
+	m_UpdateFilePath = Buffer;
+	if(m_UpdateFilePath == L"NO_KEY") {
+		PrintMsg(L"There is no key in ini file");
+		return false;
+	}
+	PrintMsg(m_UpdateFilePath);
+	return true;
 }
 //---------------------------------------------------------------------------
 
@@ -294,6 +400,12 @@ void __fastcall TFormMain::MenuBtn_StatusClick(TObject *Sender)
 void __fastcall TFormMain::MenuBtn_SettingClick(TObject *Sender)
 {
 	Notebook_Main->PageIndex = 1; // Setting
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::MenuBtn_LogClick(TObject *Sender)
+{
+	Notebook_Main->PageIndex = 2; // Log
 }
 //---------------------------------------------------------------------------
 
@@ -467,20 +579,17 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 
 			t_DataBuf = m_Info[i].m_DataBuf;
 
+			// by Rotem LSJ 2020-11-18
 			switch(i) {
 			case 0: // DTCa CCU1
-			case 2: // MCIa VCU1
-				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 31);
-				break;
 			case 1: // DTCa CCU2
+			case 2: // MCIa VCU1
 			case 3: // MCIa VCU2
 				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 31);
 				break;
 			case 4: // MCIb VCU1
-			case 6: // DTCb CCU1
-				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 32);
-				break;
 			case 5: // MCIb VCU2
+			case 6: // DTCb CCU1
 			case 7: // DTCb CCU2
 				m_Info[i].m_str_CarNum.sprintf(L"70%d", t_DataBuf[3] * 2 + 32);
 				break;
@@ -641,6 +750,8 @@ void __fastcall TFormMain::tm_UpdateDelayTimer(TObject *Sender)
 
 void __fastcall TFormMain::btn_Apply_PollingPeriodClick(TObject *Sender)
 {
+	return;
+
 	int t_result = Application->MessageBoxW(L"Are you sure you want to change multicast polling period?", L"TCMS Update", MB_YESNO | MB_ICONQUESTION);
 	if(t_result == IDNO) return;
 
@@ -670,4 +781,46 @@ void __fastcall TFormMain::btn_StopClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TFormMain::btn_OpenFilePathClick(TObject *Sender)
+{
+	// Common
+	UnicodeString t_path = L"";
+	UnicodeString t_FinalPath = L"";
+	UnicodeString t_Delimiter = L"\\";
+	int t_LastDelimiterIdx = 0;
+
+	// Get Current Dirrectory and Open it
+	t_path = ExtractFilePath(ParamStr(0));
+	OpenDialog->InitialDir = t_path;
+	//OpenDialog->Filter = L"Binary File | *.bin";
+
+	if(!OpenDialog->Execute()) {
+		return;
+	} else {
+		t_path = OpenDialog->FileName;
+		PrintMsg(t_path);
+
+		if(!FileExists(t_path)) {
+			Application->MessageBoxW(L"The file not exists.", L"Error", MB_OK | MB_ICONSTOP);
+			return;
+		}
+	}
+
+	int t_result = Application->MessageBoxW(L"If you click YES, Program will be shut down and file path changed. Are you sure you want to continue?", L"Update File Path Change", MB_YESNO | MB_ICONQUESTION);
+	if(t_result == IDNO) return;
+
+	t_LastDelimiterIdx = t_path.LastDelimiter(t_Delimiter);
+	t_FinalPath = t_path.SubString(0, t_LastDelimiterIdx);
+
+	// Write String into INI File Routine
+	UnicodeString t_ConfigFilePath = L".\\ftpserv\\users.ini";
+	UnicodeString t_Section = L"same";
+	UnicodeString t_Key = "HomePath";
+
+	WritePrivateProfileString(t_Section.c_str(), t_Key.c_str(), t_FinalPath.c_str(), t_ConfigFilePath.c_str());
+	t_FinalPath += L"|D__________|"; // Permit only for Downloading...
+	WritePrivateProfileString(t_Section.c_str(), L"Dir0", t_FinalPath.c_str(), t_ConfigFilePath.c_str());
+	FormMain->Close();
+}
+//---------------------------------------------------------------------------
 

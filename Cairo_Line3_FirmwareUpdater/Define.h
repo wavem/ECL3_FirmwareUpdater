@@ -4,8 +4,9 @@
 #define DefineH
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
+#include <string>
 //---------------------------------------------------------------------------
-#define LOCAL_IP "192.168.0.202"
+#define LOCAL_IP "192.168.0.201"
 #define MULTICAST_IP "239.255.93.18"
 #define MULTICAST_PORT 50101
 
@@ -26,7 +27,6 @@
 
 class UpdateInfo {
 public:
-
 	__fastcall UpdateInfo();
 	void __fastcall Reset();
 
@@ -44,12 +44,7 @@ public:
 	bool m_isConnected;
 	int m_ConnectionTimeOutCnt;
 };
-
 //---------------------------------------------------------------------------
-
-
-
-
 
 //---------------------------------------------------------------------------
 #endif

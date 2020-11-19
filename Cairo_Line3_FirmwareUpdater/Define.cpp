@@ -3,6 +3,7 @@
 #pragma hdrstop
 
 #include "Define.h"
+//#include <shlwapi.h>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
