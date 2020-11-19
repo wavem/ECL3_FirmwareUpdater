@@ -205,6 +205,12 @@ __published:	// IDE-managed Components
 	TOpenDialog *OpenDialog;
 	TAdvSmoothButton *btn_OpenFilePath;
 	TAdvEdit *ed_Path;
+	TLabel *lb_Setting_2;
+	TAdvSmoothButton *btn_Change_IP;
+	TAdvEdit *ed_IP_1;
+	TAdvEdit *ed_IP_2;
+	TAdvEdit *ed_IP_3;
+	TAdvEdit *ed_IP_4;
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall MenuBtn_VersionClick(TObject *Sender);
 	void __fastcall MenuBtn_UpdateClick(TObject *Sender);
@@ -219,6 +225,7 @@ __published:	// IDE-managed Components
 	void __fastcall btn_StopClick(TObject *Sender);
 	void __fastcall MenuBtn_LogClick(TObject *Sender);
 	void __fastcall btn_OpenFilePathClick(TObject *Sender);
+	void __fastcall btn_Change_IPClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TFormMain(TComponent* Owner);
@@ -244,6 +251,7 @@ public: // START FIRMWARE UPDATER PROGRAM : Variable
 	int m_Delay; // Send Packet Timer Deley
 	bool m_bPrintIdxFixed;
 	UnicodeString m_UpdateFilePath;
+	UnicodeString m_MyIP;
 
 public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall InitProgram();
@@ -252,6 +260,7 @@ public: // START FIRMWARE UPDATER PROGRAM : Func
 	void __fastcall GridDefaultSetting();
 	bool __fastcall RunExternalFTPServer();
 	bool __fastcall ReadUpdateFilePath();
+	bool __fastcall ReadIPfromConfig();
 
 	// Socket
 	bool __fastcall CreateMulticastSocket();

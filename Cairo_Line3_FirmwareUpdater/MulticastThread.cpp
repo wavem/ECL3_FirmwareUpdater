@@ -51,7 +51,7 @@ void __fastcall CMulticastThread::Execute() {
 		ZeroMemory( &recv_buff, sizeof(recv_buff));
 		int recv_buff_size = sizeof(recv_buff);
 
-		struct sockaddr_in	sender_addr;
+		struct sockaddr_in sender_addr;
 		int sender_addr_size = sizeof(sender_addr);
 
 		int recv_size = recvfrom( *m_MCast_socket, recv_buff, recv_buff_size, 0, (SOCKADDR*)&sender_addr, &sender_addr_size);

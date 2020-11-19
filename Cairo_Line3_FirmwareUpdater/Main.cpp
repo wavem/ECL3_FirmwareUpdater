@@ -190,6 +190,7 @@ void __fastcall TFormMain::InitProgram() {
 	m_bPrintIdxFixed = false;
 	memo->Width = 872; // UI Control
 	m_UpdateFilePath = L"";
+	m_MyIP = L"";
 
 	// Init Socket
 	WSADATA data;
@@ -213,13 +214,14 @@ void __fastcall TFormMain::InitProgram() {
 	}
 
 	// Read FTP Server Config File
-	if(ReadUpdateFilePath() == false) {
-		return;
-	}
+	if(ReadUpdateFilePath() == false) return;
 	ed_Path->Text = m_UpdateFilePath;
 
 	// Run External FTP Server Program
 	if(RunExternalFTPServer() == false) return;
+
+	// Read IP from INI File
+	if(ReadIPfromConfig() == false) return;
 
 	// Create Multicast Socket
 	m_IsReadyToComm = CreateMulticastSocket();
@@ -244,7 +246,7 @@ bool __fastcall TFormMain::ReadUpdateFilePath() {
 	UnicodeString t_ConfigFilePath = L".\\ftpserv\\users.ini";
 	UnicodeString t_Section = L"same";
 	UnicodeString t_Key = "HomePath";
-	wchar_t Buffer[256] = {NULL, };
+	wchar_t t_Buffer[256] = {NULL, };
 
 	// Check Config File Existence
 	if(PathFileExists(t_ConfigFilePath.c_str()) == false) {
@@ -253,13 +255,51 @@ bool __fastcall TFormMain::ReadUpdateFilePath() {
 	}
 
 	// Get Update File Path from Ini File
-	GetPrivateProfileString(t_Section.c_str(), t_Key.c_str(), L"NO_KEY", Buffer, 256, t_ConfigFilePath.c_str());
-	m_UpdateFilePath = Buffer;
+	GetPrivateProfileString(t_Section.c_str(), t_Key.c_str(), L"NO_KEY", t_Buffer, 256, t_ConfigFilePath.c_str());
+	m_UpdateFilePath = t_Buffer;
 	if(m_UpdateFilePath == L"NO_KEY") {
-		PrintMsg(L"There is no key in ini file");
+		PrintMsg(L"There is no key in ini file (users.ini)");
 		return false;
 	}
 	PrintMsg(m_UpdateFilePath);
+	return true;
+}
+//---------------------------------------------------------------------------
+
+bool __fastcall TFormMain::ReadIPfromConfig() {
+
+	// Common
+	UnicodeString tempStr = L"";
+	UnicodeString t_ConfigFilePath = L".\\FirmwareUpdater.ini";
+	UnicodeString t_Section = L"Setup";
+	UnicodeString t_Key = "IP";
+	wchar_t t_Buffer[256] = {NULL, };
+
+	// Check Config File Existence
+	if(PathFileExists(t_ConfigFilePath.c_str()) == false) {
+		PrintMsg(L"There is no config file (FirmwareUpdater.ini)");
+		return false;
+	}
+
+	// Get IP Address from Ini File
+	GetPrivateProfileString(t_Section.c_str(), t_Key.c_str(), L"NO_KEY", t_Buffer, 256, t_ConfigFilePath.c_str());
+	m_MyIP = t_Buffer;
+	if(m_MyIP == L"NO_KEY") {
+		PrintMsg(L"There is no key in ini file (FirmwareUpdater.ini)");
+		return false;
+	}
+	PrintMsg(L"My IP : " + m_MyIP);
+
+	// Set IP Text into Edit Control in Setting Page
+	AnsiString t_AnsiStr = m_MyIP;
+	struct sockaddr_in t_addr_in;
+	t_addr_in.sin_addr.s_addr = inet_addr(t_AnsiStr.c_str());
+
+	ed_IP_1->IntValue = t_addr_in.sin_addr.S_un.S_un_b.s_b1;
+	ed_IP_2->IntValue = t_addr_in.sin_addr.S_un.S_un_b.s_b2;
+	ed_IP_3->IntValue = t_addr_in.sin_addr.S_un.S_un_b.s_b3;
+	ed_IP_4->IntValue = t_addr_in.sin_addr.S_un.S_un_b.s_b4;
+
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -268,6 +308,7 @@ bool __fastcall TFormMain::CreateMulticastSocket() {
 
 	// Common
 	UnicodeString tempStr = L"";
+	AnsiString t_AnsiStr = "";
 
 	if(m_MCast_socket != NULL) {
 		PrintMsg(L"Socket already exist");
@@ -299,9 +340,11 @@ bool __fastcall TFormMain::CreateMulticastSocket() {
 	}
 
 	// Join to Multicast Group
+	t_AnsiStr = (AnsiString)m_MyIP;
 	ZeroMemory(&m_ip_mreq, sizeof(m_ip_mreq));
 	m_ip_mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
-	m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
+	//m_ip_mreq.imr_interface.s_addr = inet_addr(LOCAL_IP);
+	m_ip_mreq.imr_interface.s_addr = inet_addr(t_AnsiStr.c_str());
 	if(setsockopt(m_MCast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &m_ip_mreq, sizeof(m_ip_mreq)) == SOCKET_ERROR) {
 		PrintMsg(L"Fail to join multicast group");
 		return false;
@@ -820,6 +863,32 @@ void __fastcall TFormMain::btn_OpenFilePathClick(TObject *Sender)
 	WritePrivateProfileString(t_Section.c_str(), t_Key.c_str(), t_FinalPath.c_str(), t_ConfigFilePath.c_str());
 	t_FinalPath += L"|D__________|"; // Permit only for Downloading...
 	WritePrivateProfileString(t_Section.c_str(), L"Dir0", t_FinalPath.c_str(), t_ConfigFilePath.c_str());
+	FormMain->Close();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TFormMain::btn_Change_IPClick(TObject *Sender)
+{
+	int t_result = Application->MessageBoxW(L"If you click YES, Program will be shut down and program IP changed. Are you sure you want to continue?", L"Program IP Change", MB_YESNO | MB_ICONQUESTION);
+	if(t_result == IDNO) return;
+
+	// Common
+	UnicodeString tempStr = L"";
+
+	// Get IP Text from Edit Control in Setting Page
+	struct sockaddr_in t_addr_in;
+	t_addr_in.sin_addr.S_un.S_un_b.s_b1 = (BYTE)ed_IP_1->IntValue;
+	t_addr_in.sin_addr.S_un.S_un_b.s_b2 = (BYTE)ed_IP_2->IntValue;
+	t_addr_in.sin_addr.S_un.S_un_b.s_b3 = (BYTE)ed_IP_3->IntValue;
+	t_addr_in.sin_addr.S_un.S_un_b.s_b4 = (BYTE)ed_IP_4->IntValue;
+	tempStr = inet_ntoa(t_addr_in.sin_addr);
+
+	// Write IP String into INI File Routine
+	UnicodeString t_ConfigFilePath = L".\\FirmwareUpdater.ini";
+	UnicodeString t_Section = L"Setup";
+	UnicodeString t_Key = "IP";
+
+	WritePrivateProfileString(t_Section.c_str(), t_Key.c_str(), tempStr.c_str(), t_ConfigFilePath.c_str());
 	FormMain->Close();
 }
 //---------------------------------------------------------------------------

@@ -79,7 +79,6 @@ object FormMain: TFormMain
     Color = clBlack
     ParentBackground = False
     TabOrder = 5
-    ExplicitHeight = 624
     object Notebook_Main: TNotebook
       Left = 0
       Top = 0
@@ -88,12 +87,10 @@ object FormMain: TFormMain
       Align = alClient
       PageIndex = 1
       TabOrder = 0
-      ExplicitHeight = 624
       object TPage
         Left = 0
         Top = 0
         Caption = 'Default'
-        ExplicitHeight = 624
         object _pnBase_01_Update: TPanel
           Left = 0
           Top = 0
@@ -104,7 +101,6 @@ object FormMain: TFormMain
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitHeight = 624
           object grid: TAdvStringGrid
             Left = 29
             Top = 24
@@ -260,7 +256,6 @@ object FormMain: TFormMain
         Top = 0
         HelpContext = 1
         Caption = 'Setting'
-        ExplicitHeight = 624
         object _pnBase_02_Setting: TPanel
           Left = 0
           Top = 0
@@ -271,13 +266,28 @@ object FormMain: TFormMain
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitHeight = 624
+          ExplicitTop = 6
           object lb_Setting_1: TLabel
             Left = 32
             Top = 29
             Width = 123
             Height = 18
             Caption = 'Update File Path'
+            Color = clYellow
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clSilver
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentColor = False
+            ParentFont = False
+          end
+          object lb_Setting_2: TLabel
+            Left = 80
+            Top = 77
+            Width = 75
+            Height = 18
+            Caption = 'IP Setting'
             Color = clYellow
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clSilver
@@ -837,6 +847,189 @@ object FormMain: TFormMain
             Visible = True
             Version = '3.3.5.3'
           end
+          object btn_Change_IP: TAdvSmoothButton
+            Left = 385
+            Top = 70
+            Width = 120
+            Height = 35
+            Cursor = crHandPoint
+            Hint = 'TEST'
+            Appearance.GlowPercentage = 35
+            Appearance.Font.Charset = DEFAULT_CHARSET
+            Appearance.Font.Color = clWhite
+            Appearance.Font.Height = -15
+            Appearance.Font.Name = 'Tahoma'
+            Appearance.Font.Style = [fsBold]
+            Appearance.FocusColor = clWhite
+            Appearance.Rounding = 12
+            Status.Caption = '0'
+            Status.Appearance.Fill.Color = clRed
+            Status.Appearance.Fill.ColorMirror = clNone
+            Status.Appearance.Fill.ColorMirrorTo = clNone
+            Status.Appearance.Fill.GradientType = gtSolid
+            Status.Appearance.Fill.GradientMirrorType = gtSolid
+            Status.Appearance.Fill.BorderColor = clGray
+            Status.Appearance.Fill.Rounding = 8
+            Status.Appearance.Fill.ShadowOffset = 0
+            Status.Appearance.Fill.Glow = gmNone
+            Status.Appearance.Font.Charset = DEFAULT_CHARSET
+            Status.Appearance.Font.Color = clWhite
+            Status.Appearance.Font.Height = -11
+            Status.Appearance.Font.Name = 'Tahoma'
+            Status.Appearance.Font.Style = []
+            Bevel = False
+            BevelColor = clLime
+            Caption = 'APPLY'
+            Color = clNavy
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 8
+            ShowFocus = False
+            Version = '2.1.0.0'
+            OnClick = btn_Change_IPClick
+            TMSStyle = 0
+          end
+          object ed_IP_1: TAdvEdit
+            Left = 170
+            Top = 74
+            Width = 47
+            Height = 26
+            EditAlign = eaCenter
+            EditType = etNumeric
+            EmptyText = '0'
+            EmptyTextStyle = []
+            MaxValue = 255
+            LabelFont.Charset = DEFAULT_CHARSET
+            LabelFont.Color = clWindowText
+            LabelFont.Height = -11
+            LabelFont.Name = 'Tahoma'
+            LabelFont.Style = []
+            Lookup.Font.Charset = DEFAULT_CHARSET
+            Lookup.Font.Color = clWindowText
+            Lookup.Font.Height = -11
+            Lookup.Font.Name = 'Arial'
+            Lookup.Font.Style = []
+            Lookup.Separator = ';'
+            Color = clWhite
+            DoubleBuffered = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            MaxLength = 3
+            ParentFont = False
+            TabOrder = 4
+            Text = '192'
+            Visible = True
+            Version = '3.3.5.3'
+          end
+          object ed_IP_2: TAdvEdit
+            Left = 223
+            Top = 74
+            Width = 47
+            Height = 26
+            EditAlign = eaCenter
+            EditType = etNumeric
+            EmptyText = '0'
+            EmptyTextStyle = []
+            MaxValue = 255
+            LabelFont.Charset = DEFAULT_CHARSET
+            LabelFont.Color = clWindowText
+            LabelFont.Height = -11
+            LabelFont.Name = 'Tahoma'
+            LabelFont.Style = []
+            Lookup.Font.Charset = DEFAULT_CHARSET
+            Lookup.Font.Color = clWindowText
+            Lookup.Font.Height = -11
+            Lookup.Font.Name = 'Arial'
+            Lookup.Font.Style = []
+            Lookup.Separator = ';'
+            Color = clWhite
+            DoubleBuffered = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            MaxLength = 3
+            ParentFont = False
+            TabOrder = 5
+            Text = '192'
+            Visible = True
+            Version = '3.3.5.3'
+          end
+          object ed_IP_3: TAdvEdit
+            Left = 276
+            Top = 74
+            Width = 47
+            Height = 26
+            EditAlign = eaCenter
+            EditType = etNumeric
+            EmptyText = '0'
+            EmptyTextStyle = []
+            MaxValue = 255
+            LabelFont.Charset = DEFAULT_CHARSET
+            LabelFont.Color = clWindowText
+            LabelFont.Height = -11
+            LabelFont.Name = 'Tahoma'
+            LabelFont.Style = []
+            Lookup.Font.Charset = DEFAULT_CHARSET
+            Lookup.Font.Color = clWindowText
+            Lookup.Font.Height = -11
+            Lookup.Font.Name = 'Arial'
+            Lookup.Font.Style = []
+            Lookup.Separator = ';'
+            Color = clWhite
+            DoubleBuffered = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            MaxLength = 3
+            ParentFont = False
+            TabOrder = 6
+            Text = '192'
+            Visible = True
+            Version = '3.3.5.3'
+          end
+          object ed_IP_4: TAdvEdit
+            Left = 329
+            Top = 74
+            Width = 47
+            Height = 26
+            EditAlign = eaCenter
+            EditType = etNumeric
+            EmptyText = '0'
+            EmptyTextStyle = []
+            MaxValue = 255
+            LabelFont.Charset = DEFAULT_CHARSET
+            LabelFont.Color = clWindowText
+            LabelFont.Height = -11
+            LabelFont.Name = 'Tahoma'
+            LabelFont.Style = []
+            Lookup.Font.Charset = DEFAULT_CHARSET
+            Lookup.Font.Color = clWindowText
+            Lookup.Font.Height = -11
+            Lookup.Font.Name = 'Arial'
+            Lookup.Font.Style = []
+            Lookup.Separator = ';'
+            Color = clWhite
+            DoubleBuffered = True
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -15
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            MaxLength = 3
+            ParentFont = False
+            TabOrder = 7
+            Text = '192'
+            Visible = True
+            Version = '3.3.5.3'
+          end
         end
       end
       object TPage
@@ -844,8 +1037,6 @@ object FormMain: TFormMain
         Top = 0
         HelpContext = 2
         Caption = 'Log'
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object _pnBase_03_Log: TPanel
           Left = 0
           Top = 0
@@ -856,10 +1047,6 @@ object FormMain: TFormMain
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitLeft = 152
-          ExplicitTop = 56
-          ExplicitWidth = 185
-          ExplicitHeight = 41
           object memo: TAdvMemo
             Left = 29
             Top = 24
