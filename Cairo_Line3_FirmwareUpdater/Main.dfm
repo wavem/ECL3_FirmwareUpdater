@@ -91,6 +91,8 @@ object FormMain: TFormMain
         Left = 0
         Top = 0
         Caption = 'Default'
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object _pnBase_01_Update: TPanel
           Left = 0
           Top = 0

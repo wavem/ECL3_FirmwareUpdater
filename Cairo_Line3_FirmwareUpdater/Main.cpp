@@ -723,10 +723,24 @@ bool __fastcall TFormMain::SendUpdateMessage() {
 
 	// Find Update File and Read File Size
 	int t_FileSize = 0;
-	AnsiString t_folderPath = "C:\\Works\\Projects\\Tunisia112\\";
-	AnsiString t_fileName = "vxWorks";
 	AnsiString t_dstPath = "";
-	t_dstPath = t_folderPath + t_fileName;
+	int t_Len = m_UpdateFilePath.Length();
+
+	tempStr = m_UpdateFilePath;
+	for(int i = 0 ; i < t_Len ; i++) {
+		if(tempStr.IsPathDelimiter0(i)) {
+			if((i + 1 < t_Len) && tempStr.IsPathDelimiter0(i + 1)) {
+				i++;
+				continue;
+			} else {
+				tempStr.Insert0(L"\\", i);
+				t_Len = tempStr.Length();
+				i = 0;
+			}
+		}
+	}
+	tempStr += L"vxWorks";
+	t_dstPath = tempStr;
 
 	FILE* t_fp = NULL;
 	t_fp = fopen(t_dstPath.c_str(), "rb");
