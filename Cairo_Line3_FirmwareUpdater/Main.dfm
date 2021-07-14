@@ -85,7 +85,6 @@ object FormMain: TFormMain
       Width = 928
       Height = 309
       Align = alClient
-      PageIndex = 1
       TabOrder = 0
       object TPage
         Left = 0
@@ -266,7 +265,6 @@ object FormMain: TFormMain
           Color = cl3DDkShadow
           ParentBackground = False
           TabOrder = 0
-          ExplicitTop = 6
           object lb_Setting_1: TLabel
             Left = 32
             Top = 29
