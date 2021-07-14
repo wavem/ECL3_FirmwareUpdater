@@ -480,16 +480,6 @@ void __fastcall TFormMain::GridDefaultSetting() {
 		grid->Cells[0][i] = i;
 	}
 
-	// Connection Info
-	grid->Cells[1][1] = L"Connected";
-	grid->Cells[1][2] = L"Connected";
-	grid->Cells[1][3] = L"Connected";
-	grid->Cells[1][4] = L"Connected";
-	grid->Cells[1][5] = L"Connected";
-	grid->Cells[1][6] = L"Connected";
-	grid->Cells[1][7] = L"Connected";
-	grid->Cells[1][8] = L"Connected";
-
 	// Car Name Setting
 	grid->Cells[2][1] = L"DTCa";
 	grid->Cells[2][2] = L"DTCa";
@@ -510,17 +500,6 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	grid->Cells[3][7] = L"CCU1";
 	grid->Cells[3][8] = L"CCU2";
 
-	// Car Number
-	grid->Cells[4][1] = L"3201";
-	grid->Cells[4][2] = L"3201";
-	grid->Cells[4][3] = L"3201";
-	grid->Cells[4][4] = L"3201";
-	grid->Cells[4][5] = L"3201";
-	grid->Cells[4][6] = L"3201";
-	grid->Cells[4][7] = L"3201";
-	grid->Cells[4][8] = L"3201";
-
-
 	// Device IP Setting
 	grid->Cells[5][1] = L"192.168.0.51";
 	grid->Cells[5][2] = L"192.168.0.52";
@@ -531,45 +510,14 @@ void __fastcall TFormMain::GridDefaultSetting() {
 	grid->Cells[5][7] = L"192.168.7.51";
 	grid->Cells[5][8] = L"192.168.7.52";
 
-	// Version
-	grid->Cells[6][1] = L"01.01";
-	grid->Cells[6][2] = L"01.01";
-	grid->Cells[6][3] = L"01.01";
-	grid->Cells[6][4] = L"01.01";
-	grid->Cells[6][5] = L"01.01";
-	grid->Cells[6][6] = L"01.01";
-	grid->Cells[6][7] = L"01.01";
-	grid->Cells[6][8] = L"01.01";
-
-	// Date
-	grid->Cells[7][1] = L"2021.01.14";
-	grid->Cells[7][2] = L"2021.01.14";
-	grid->Cells[7][3] = L"2021.01.14";
-	grid->Cells[7][4] = L"2021.01.14";
-	grid->Cells[7][5] = L"2021.01.14";
-	grid->Cells[7][6] = L"2021.01.14";
-	grid->Cells[7][7] = L"2021.01.14";
-	grid->Cells[7][8] = L"2021.01.14";
-
-
 	// Progress Default Setting
 	for(int i = 1 ; i < 9 ; i++) {
 		grid->AddAdvProgress(8, i, 0, 100);
-		grid->Ints[8][i] = 100;
+		grid->Ints[8][i] = 0;
 
 		grid->AddAdvProgress(9, i, 0, 100);
-		//grid->Ints[9][i] = 0;
+		grid->Ints[9][i] = 0;
 	}
-
-
-	grid->Ints[9][1] = 13;
-	grid->Ints[9][2] = 94;
-	grid->Ints[9][3] = 89;
-	grid->Ints[9][4] = 34;
-	grid->Ints[9][5] = 56;
-	grid->Ints[9][6] = 79;
-	grid->Ints[9][7] = 90;
-	grid->Ints[9][8] = 23;
 }
 //---------------------------------------------------------------------------
 
@@ -715,8 +663,8 @@ void __fastcall TFormMain::tm_InfoTimer(TObject *Sender)
 	// Print Info into Grid
 	for(int i = 0 ; i < 8 ; i++) {
 		grid->Cells[1][i + 1] = m_Info[i].m_str_Status;
-		//grid->Cells[4][i + 1] = m_Info[i].m_str_CarNum;
-		//grid->Cells[6][i + 1] = m_Info[i].m_str_Version;
+		grid->Cells[4][i + 1] = m_Info[i].m_str_CarNum;
+		grid->Cells[6][i + 1] = m_Info[i].m_str_Version;
 		grid->Cells[7][i + 1] = m_Info[i].m_str_Date;
 		grid->Ints[8][i + 1] = m_Info[i].m_value_FTP;
 		grid->Ints[9][i + 1] = m_Info[i].m_value_FLS;

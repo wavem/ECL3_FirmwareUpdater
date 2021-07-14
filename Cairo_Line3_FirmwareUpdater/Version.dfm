@@ -55,9 +55,9 @@ object FormVersion: TFormVersion
     object lb_Version_Value: TLabel
       Left = 350
       Top = 33
-      Width = 20
+      Width = 32
       Height = 16
-      Caption = '1.0'
+      Caption = '1.0.1'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -13
